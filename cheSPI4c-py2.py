@@ -30,7 +30,7 @@ def initfil2(filename):
   buf=fil.readlines()
   fil.close()
   for i in range(len(buf)):
-     buf[i]=buf[i].split()
+     buf[i]=string.split(buf[i])
   return buf
 
 def initfil(filename):
@@ -41,7 +41,7 @@ def initfil(filename):
 
 aa13dict={'A': 'ALA', 'C': 'CYS', 'E': 'GLU', 'D': 'ASP', 'G': 'GLY', 'F': 'PHE', 'I': 'ILE', 'H': 'HIS', 'K': 'LYS', 'M': 'MET', 'L': 'LEU', 'N': 'ASN', 'Q': 'GLN', 'P': 'PRO', 'S': 'SER', 'R': 'ARG', 'T': 'THR', 'W': 'TRP', 'V': 'VAL', 'Y': 'TYR'}
 aa31dict={'CYS': 'C', 'GLN': 'Q', 'ILE': 'I', 'SER': 'S', 'VAL': 'V', 'MET': 'M', 'ASN': 'N', 'PRO': 'P', 'LYS': 'K', 'THR': 'T', 'PHE': 'F', 'ALA': 'A', 'HIS': 'H', 'GLY': 'G', 'ASP': 'D', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 'GLU': 'E', 'TYR': 'Y'}
-aa3s=list(aa31dict.keys());aa3s.sort()#introduce ordering
+aa3s=aa31dict.keys();aa3s.sort()#introduce ordering
 ##aa1s=aa13dict.keys();aa1s.sort()
 aa3s=['ALA','ARG' ,'ASP' ,'ASN' ,'CYS' ,'GLU' ,'GLN' ,'GLY' ,'HIS' ,'ILE' ,'LEU' ,'LYS' ,'MET' ,'PHE' ,'PRO' ,'SER' ,'THR' ,'TRP' ,'TYR' ,'VAL']
 aa1s3=[aa31dict[k] for k in aa3s]
@@ -90,273 +90,273 @@ class Population(list):
 
     def __init__(self):
         list.__init__(self)
-        print('initializing population')
-        self.splitlib=[]
+	print 'initializing population'
+	self.splitlib=[]
 
     def append(self,val):
-        list.append(self,val)
+	list.append(self,val)
 
     def mergewithchildren(self):
-        for child in self.children:self.append(child)
-        del self.children
+	for child in self.children:self.append(child)
+	del self.children
 
     def fill_from_random(self,num,cls):
-        for i in range(num):
-          obj=cls.initialize_random(self.envi)
-          ##print 'random:',obj,obj.energy
-          self.append(obj)
+	for i in range(num):
+	  obj=cls.initialize_random(self.envi)
+	  ##print 'random:',obj,obj.energy
+	  self.append(obj)
 
     def sort(self,attr):
-        list.sort(self,key=operator.attrgetter(attr))
-        ##for i,val in enumerate(self):val.rank=i
+	list.sort(self,key=operator.attrgetter(attr))
+	##for i,val in enumerate(self):val.rank=i
 
     def getbest(self):
-        self.sort('energy')
-        return self[0]
+	self.sort('energy')
+	return self[0]
 
     def get_clone(self,obj):
-        return obj.clone(self)
-        
+	return obj.clone(self)
+	
     def selectNormal(self,selrat,size):
-        if selrat>1.0:return randint(0,size-1)
-        i=99999
-        while i>size-1:
-          i=int(abs(normalvariate(0,selrat))*size)
-        return i
+	if selrat>1.0:return randint(0,size-1)
+	i=99999
+	while i>size-1:
+	  i=int(abs(normalvariate(0,selrat))*size)
+	return i
 
     def mergewith_FAIL(self,other):#dont use!
-        incommon=0
-        for id in other.iddct:
-          if not id in self.iddct:
-            self.append(other.iddct[id])
-          else:incommon+=1
-        print('individuals in common:',incommon)
+	incommon=0
+	for id in other.iddct:
+	  if not id in self.iddct:
+	    self.append(other.iddct[id])
+	  else:incommon+=1
+	print 'individuals in common:',incommon
 
     def mergewith(self,other):
-        incommon=0
-        dct={}
-        for obj in self:dct[obj.getid()]=obj
-        for obj in other:
-          id=obj.getid()
-          if not id in dct:
-            self.append(obj)
-            dct[id]=obj
-          else:incommon+=1
-        print('individuals in common:',incommon)
+	incommon=0
+	dct={}
+	for obj in self:dct[obj.getid()]=obj
+	for obj in other:
+	  id=obj.getid()
+	  if not id in dct:
+	    self.append(obj)
+	    dct[id]=obj
+	  else:incommon+=1
+	print 'individuals in common:',incommon
 
     def cull(self,num):
-        if num<=0:
-          print('note: population size is < 100:',100+num)
-          return
-        for i in range(len(self)-num):self.pop(-1)
+	if num<=0:
+	  print 'note: population size is < 100:',100+num
+	  return
+	for i in range(len(self)-num):self.pop(-1)
 
     def getspread(self):
-        tot=0.0
-        N=len(self)
-        for i in range(N):
-          obji=self[i]
-          for j in range(i+1,N):
-            objj=self[j]
-            tot+=obji.calc_distance(objj)
-        return tot/(N**2-0.5*N)
+	tot=0.0
+	N=len(self)
+	for i in range(N):
+	  obji=self[i]
+	  for j in range(i+1,N):
+	    objj=self[j]
+	    tot+=obji.calc_distance(objj)
+	return tot/(N**2-0.5*N)
 
     def derive_stats(self,cnt):
-        eners=array([obj.energy for obj in self])
-        ##genestd=self.getspread()
-        genestd=self[0].getspread_simple(self)
-        print('average energy: %9.3f %9.3f %8.4f %7.4f %4d %3d'%(average(eners),min(eners),std(eners),genestd,cnt,len(eners)), end=' ')
-        print(self[0].getid())
+	eners=array([obj.energy for obj in self])
+	##genestd=self.getspread()
+	genestd=self[0].getspread_simple(self)
+	print 'average energy: %9.3f %9.3f %8.4f %7.4f %4d %3d'%(average(eners),min(eners),std(eners),genestd,cnt,len(eners)),
+	print self[0].getid()
 
     def breed(self,limitfac=100.0,expandfac=1.0,temperature=1.0,probs=(0.4,0.4,0.2),
-              growthmode='replace',selrats=(0.5,2.0),sortnum=10):
-        children=Population()
-        cnt=0;numrep=0
-        size=len(self)
-        dct={}
-        self.iddct=dct
-        for obj in self:dct[obj.getid()]=obj
-        print('breeding population',size,limitfac,temperature,growthmode)
-        while cnt<size*limitfac and len(children)<size*expandfac:
-          #find mates (only one in case of mutation)
-          i=self.selectNormal(selrats[0],size)
-          obji=self[i]
-          ##print 'breeding object',i##,onum
-          #find breeding operation - and breed mates
-          rn=uniform(0.0,1.0)
-          psum=0.0;onum=None
-          for j in range(len(probs)):
-            psum+=probs[j]
-            if rn<psum:break
-          prevener=obji.energy
-          if j==0:
-            #---mutation---
-            child=obji.mutate()#consider multiple mutations?
-            repi=i
-          elif j==1:
-            #---crossover---(reproduce)
-            onum=i
-            while onum==i:onum=self.selectNormal(selrats[1],size)
-            objo=self[onum]
-            prevenero=objo.energy
-            child=obji.crossover(objo)
-            if prevener>=prevenero:repi=i
-            else:repi=onum
-          elif j==2:
-            #---multicrossover---(non-biological reproduction)
-            onum=-1;repi=-1;objo=self[-1]
-            child=objo.multicrossover(self,selrats[0],size)
-          child.calculate_fitness(self.envi)
-          #consider acceptance of child
-          childid=child.getid()
-          if childid in dct:
-            pass##dct[childid]+=1
-            ##print 'note child allready used',childid,dct[childid],cnt
-            ##print 'note child allready used',childid,cnt
-          else:
-           childener=child.energy
-           ptest=999
-           if childener>prevener:
-            ptest=exp(-(childener-prevener)/temperature)
-            if repi==0:ptest=-999#to ensure that very best individual survives!
+	      growthmode='replace',selrats=(0.5,2.0),sortnum=10):
+	children=Population()
+	cnt=0;numrep=0
+	size=len(self)
+	dct={}
+	self.iddct=dct
+	for obj in self:dct[obj.getid()]=obj
+	print 'breeding population',size,limitfac,temperature,growthmode
+	while cnt<size*limitfac and len(children)<size*expandfac:
+	  #find mates (only one in case of mutation)
+	  i=self.selectNormal(selrats[0],size)
+	  obji=self[i]
+	  ##print 'breeding object',i##,onum
+	  #find breeding operation - and breed mates
+	  rn=uniform(0.0,1.0)
+	  psum=0.0;onum=None
+	  for j in range(len(probs)):
+	    psum+=probs[j]
+	    if rn<psum:break
+	  prevener=obji.energy
+	  if j==0:
+	    #---mutation---
+    	    child=obji.mutate()#consider multiple mutations?
+	    repi=i
+	  elif j==1:
+	    #---crossover---(reproduce)
+	    onum=i
+	    while onum==i:onum=self.selectNormal(selrats[1],size)
+	    objo=self[onum]
+	    prevenero=objo.energy
+	    child=obji.crossover(objo)
+	    if prevener>=prevenero:repi=i
+	    else:repi=onum
+	  elif j==2:
+	    #---multicrossover---(non-biological reproduction)
+	    onum=-1;repi=-1;objo=self[-1]
+	    child=objo.multicrossover(self,selrats[0],size)
+	  child.calculate_fitness(self.envi)
+	  #consider acceptance of child
+	  childid=child.getid()
+	  if childid in dct:
+	    pass##dct[childid]+=1
+	    ##print 'note child allready used',childid,dct[childid],cnt
+	    ##print 'note child allready used',childid,cnt
+	  else:
+	   childener=child.energy
+	   ptest=999
+	   if childener>prevener:
+	    ptest=exp(-(childener-prevener)/temperature)
+	    if repi==0:ptest=-999#to ensure that very best individual survives!
            if ptest>uniform(0.0,1.0):
-            print('breedinfo: using',j,i,onum,childener,prevener,ptest)
-            print(child,childener)
-            dct[childid]=child
-            numrep+=1
-            if growthmode=='append':children.append(child)
-            elif growthmode=='replace':
-                self[repi]=child
-                if numrep%sortnum==0:
-                  self.sort('energy')
-                  #below is only for diagnostics
-                  self.derive_stats(cnt)
-           ##else:print 'breedinfo: rejecting',j,i,onum,childener,prevener,ptest
-          cnt+=1
-        if growthmode=='append':self.children=children
+	    print 'breedinfo: using',j,i,onum,childener,prevener,ptest
+	    print child,childener
+	    dct[childid]=child
+	    numrep+=1
+	    if growthmode=='append':children.append(child)
+	    elif growthmode=='replace':
+		self[repi]=child
+		if numrep%sortnum==0:
+		  self.sort('energy')
+		  #below is only for diagnostics
+		  self.derive_stats(cnt)
+	   ##else:print 'breedinfo: rejecting',j,i,onum,childener,prevener,ptest
+	  cnt+=1
+	if growthmode=='append':self.children=children
 
     def multi_breed(self,pops,limitfac=100):
-        print('merging populations',len(pops))
-        ##for popul in pops:popul.breed() must be breed before
-        merged=pops[0]
-        for i in range(1,len(pops)):merged.mergewith(pops[i])
-        merged.sort('energy')
-        merged.derive_stats(-1)
-        merged.cull(30)
-        merged.breed(limitfac=limitfac)
-        return merged
+	print 'merging populations',len(pops)
+	##for popul in pops:popul.breed() must be breed before
+	merged=pops[0]
+	for i in range(1,len(pops)):merged.mergewith(pops[i])
+	merged.sort('energy')
+	merged.derive_stats(-1)
+	merged.cull(30)
+	merged.breed(limitfac=limitfac)
+	return merged
 
 
 class Schema:
 
     def __init__(self,maxiter,population,environment):
-        self.maxiter=maxiter
-        self.population=population
-        self.envi=environment
+	self.maxiter=maxiter
+	self.population=population
+	self.envi=environment
 
     def initializeall(self):
-        for obj in self.population:
-          obj.initialize(self.envi)
-          obj.calculate_fitness()
+	for obj in self.population:
+	  obj.initialize(self.envi)
+	  obj.calculate_fitness()
 
     def tournament_selection(self,rounds=0):
-        #TODO: implement diversity reward
-        rounds=0
-        pop=self.population
-        i=randint(0,len(pop)-1)
-        best=pop[i]
-        bestener=best.energy
-        cnt=0
-        while cnt<rounds-0.1:
-          if 0.1<rounds-cnt<0.99:
-            if uniform(0.0,1.0)>rounds-cnt:break
-            #else: complete final round
-          i=randint(0,len(self.population)-1)
-          cand=pop[i]
-          ener=cand.energy
-          ##ener+=pop.getdiversityreward(cand)
-          if ener<bestener:
-            bestener=ener
-            best=cand
-          cnt+=1
-        return best,i
+	#TODO: implement diversity reward
+	rounds=0
+	pop=self.population
+	i=randint(0,len(pop)-1)
+	best=pop[i]
+	bestener=best.energy
+	cnt=0
+	while cnt<rounds-0.1:
+	  if 0.1<rounds-cnt<0.99:
+	    if uniform(0.0,1.0)>rounds-cnt:break
+	    #else: complete final round
+	  i=randint(0,len(self.population)-1)
+	  cand=pop[i]
+	  ener=cand.energy
+	  ##ener+=pop.getdiversityreward(cand)
+	  if ener<bestener:
+	    bestener=ener
+	    best=cand
+	  cnt+=1
+	return best,i
 
     def full_breed_evolve_steady_state(self,shift,pref):
-        self.initialize_fullatom()
-        pop=self.population
-        pop.runanneals(frac=2.0,temp=15,numiter=25)
-        pop.runoptimize(0.15,25)
-        Np=len(pop)
-        pop.evaluate(size=Np,divweight=5.0)
+	self.initialize_fullatom()
+	pop=self.population
+	pop.runanneals(frac=2.0,temp=15,numiter=25)
+	pop.runoptimize(0.15,25)
+	Np=len(pop)
+	pop.evaluate(size=Np,divweight=5.0)
         ##pop.runmutations(self.envi,nummut=30)
-        ##pop.runoptimize(0.05,10)
-        ##sizes=[Np for _ in range(4)]
-        sizes=[12,10,9,8]
-        for i in range(len(sizes)):
-          sr=[3.0,2.0,1.5,0.9,0.6][i]
-          ss=[2.5,1.6,1.4,1.2,1.0][i]
-          ts=[15.0,10.0,6.0,3.0,1.0]
+	##pop.runoptimize(0.05,10)
+	##sizes=[Np for _ in range(4)]
+	sizes=[12,10,9,8]
+	for i in range(len(sizes)):
+	  sr=[3.0,2.0,1.5,0.9,0.6][i]
+	  ss=[2.5,1.6,1.4,1.2,1.0][i]
+	  ts=[15.0,10.0,6.0,3.0,1.0]
           pop.breed(limitfac=16.0,temperature=ts[i],growthmode='replace',selrats=(sr,sr),stepstd=ss,
-                    probs=(0.1,0.2-(i*0.04),0.8+(i*0.04)),nummut=30)##,forcefield=self.forcefield)
-                    ##probs=(0.0,0.0,1.0),nummut=30)
-          pop.runoptimize(0.12-i*0.02,25)
-          pop.evaluate(size=sizes[i],divweight=3.5-i*0.5)
-        pop.write('final'+pref+'_'+str(shift)+'_',writenum=8)
+		    probs=(0.1,0.2-(i*0.04),0.8+(i*0.04)),nummut=30)##,forcefield=self.forcefield)
+		    ##probs=(0.0,0.0,1.0),nummut=30)
+	  pop.runoptimize(0.12-i*0.02,25)
+	  pop.evaluate(size=sizes[i],divweight=3.5-i*0.5)
+	pop.write('final'+pref+'_'+str(shift)+'_',writenum=8)
 
     def runmutate1(self,mutnum=0):
-        so0=self.population[mutnum]
-        so0.rstlst=self.envi.restrlstfg
-        so0.stagnation=0
-        so0.mutSCShistory=[]
-        ##so0.initialize(self.envi)
-        T0=time.time()
-        f=3.0;cnt=0;T=20.0
-        if so0.energy==None:so0.calculate_energy()
-        fgener0=so0.energy
-        so0.sched.usefg=False
-        so0.rstlst=self.envi.restrlstcg
-        so0.optimize(50,0.05)##WithReplace()#temperature, etc...
-        so0.sched.usefg=True
-        so0.rstlst=self.envi.restrlstfg
-        so0.reinitializ_schedule()
-        so0.calculate_energy()
-        fgener1=so0.energy
-        print('total time:',time.time()-T0)
-        print('cmpeners',fgener0,fgener1,fgener0-fgener1)
-        for i in range(self.maxiter):
-          ##so0.mutate(self.envi,self.population)##WithReplace()#temperature, etc...
-          so0.mutateSCS(f,T,useweights=so0.stagnation>2,size=10,fw=1.0)
-          ##so0.mutateSCS(f,T,useweights=False,size=10,fw=1.0)
-          cnt+=1
-          f=3.0/ (1+cnt)
-          T=20.0/(1+cnt)
-        so0.calculate_fitness()
-        print('total time:',time.time()-T0)
-        ##so0.finalize_mutations()
+	so0=self.population[mutnum]
+	so0.rstlst=self.envi.restrlstfg
+	so0.stagnation=0
+	so0.mutSCShistory=[]
+	##so0.initialize(self.envi)
+	T0=time.time()
+	f=3.0;cnt=0;T=20.0
+	if so0.energy==None:so0.calculate_energy()
+	fgener0=so0.energy
+	so0.sched.usefg=False
+	so0.rstlst=self.envi.restrlstcg
+	so0.optimize(50,0.05)##WithReplace()#temperature, etc...
+	so0.sched.usefg=True
+	so0.rstlst=self.envi.restrlstfg
+	so0.reinitializ_schedule()
+	so0.calculate_energy()
+	fgener1=so0.energy
+	print 'total time:',time.time()-T0
+	print 'cmpeners',fgener0,fgener1,fgener0-fgener1
+	for i in range(self.maxiter):
+	  ##so0.mutate(self.envi,self.population)##WithReplace()#temperature, etc...
+    	  so0.mutateSCS(f,T,useweights=so0.stagnation>2,size=10,fw=1.0)
+    	  ##so0.mutateSCS(f,T,useweights=False,size=10,fw=1.0)
+	  cnt+=1
+	  f=3.0/ (1+cnt)
+	  T=20.0/(1+cnt)
+	so0.calculate_fitness()
+	print 'total time:',time.time()-T0
+	##so0.finalize_mutations()
 
     
 
 class Environment:
 
     def __init__(self):
-        pass
+	pass
 
 
 class GenericIndividual:
 
     def optimize(self):
-        pass
+	pass
 
     def calculate_fitness(self):
-        pass
+	pass
 
     def initialize(self):
-        pass
+	pass
 
     def mutate(self):
-        pass
+	pass
 
     def crossover(self,other):
-        pass
+	pass
 
 
 debug=False
@@ -369,12 +369,12 @@ def choose_random_consecutive(numelem,p=0.2):
     lst=[]
     app=lst.append
     for i in range(numelem):
-        if rand()<p:
-          other=1-first
-          app(other)
-          first=other
-        else:
-          app(first)
+	if rand()<p:
+	  other=1-first
+	  app(other)
+	  first=other
+	else:
+	  app(first)
     return lst
     ##print ''.join([str(x) for x in lst])
     #takes ca. 0.03 ms for numelem==100
@@ -389,7 +389,7 @@ def getramp(buf):
     dct={}
     for i in range(64):
       for j in range(4):
-        rgb=[float(x)/255 for x in buf[i][4*j+1:4*j+4]]
+        rgb=[string.atof(x)/255 for x in buf[i][4*j+1:4*j+4]]
         dct[i+j*64]=rgb
     return dct
 
@@ -426,16 +426,16 @@ def getpcdata(bmrid,selpcnum,selss,seq,sec,pref,minnumsh=12.5,return3=False):
     buf14=initfil2('CheZOD%s/zscores%s.txt'%(pref14,bmrid))
     zscores=[eval(lin[2]) for lin in buf]
     for lin in buf:
-        resi=int(lin[1])
-        ##ss8=lin[8]
-        ss8=lin[6]
-        if not ss8 in 'UZ_':xsec[resi+3]=ss8
-        ss4=lin[7]
-        if not ss4 in 'UZ_':xse4[resi+3]=ss4
-        #zsco=lin[2]
+	resi=string.atoi(lin[1])
+	##ss8=lin[8]
+	ss8=lin[6]
+	if not ss8 in 'UZ_':xsec[resi+3]=ss8
+	ss4=lin[7]
+	if not ss4 in 'UZ_':xse4[resi+3]=ss4
+	#zsco=lin[2]
     ##if return3: return xseq[4:],xsec[4:],xse4[4:]
     if return3: return xseq[4:-4],xsec[4:-4],xse4[4:-4]
-    first=int(buf[0][1])
+    first=string.atoi(buf[0][1])
     for i,lin in enumerate(buf):
       ##ss4=lin[7]
       ss4=conv8to3[lin[6]]
@@ -444,22 +444,22 @@ def getpcdata(bmrid,selpcnum,selss,seq,sec,pref,minnumsh=12.5,return3=False):
       ##auth,hb,rsa,cistrans,phi,psi,numsh=lin[9:]
       numsh='999'
       if ss4 == selss and eval(numsh)>minnumsh:
-        lin14=buf14[i]
-        resn=lin[0]
-        resi=int(lin[1])
-        ##zsco=eval(lin[2])
-        ##zsco=lin[2]
-        zsco=lin14[2]
-        ##pcs=[eval(x) for x in lin[3:6]]
-        pcs=[eval(x) for x in lin14[3:6]]
-        ss8=lin[8]
-        if ss8 in 'UZ_':ss8='-'
-        seqsegm=''.join(xseq[resi-1:resi+8])
-        secsegm=''.join(xsec[resi-1:resi+8])
-        se4segm=''.join(xse4[resi-1:resi+8])
-        dat.append((bmrid,pcs[selpcnum],seqsegm,secsegm,se4segm,resi,zsco))
-        ##print 'data: %5s %7.3f %9s %9s %9s %3d'%dat[-1][:-1],resn,ss8,ss4,se4segm[4],
-    if debug:print('found pcs:',bmrid,selss,selpcnum,len(dat))
+	lin14=buf14[i]
+	resn=lin[0]
+	resi=string.atoi(lin[1])
+	##zsco=eval(lin[2])
+	##zsco=lin[2]
+	zsco=lin14[2]
+	##pcs=[eval(x) for x in lin[3:6]]
+	pcs=[eval(x) for x in lin14[3:6]]
+	ss8=lin[8]
+	if ss8 in 'UZ_':ss8='-'
+	seqsegm=string.join(xseq[resi-1:resi+8],'')
+	secsegm=string.join(xsec[resi-1:resi+8],'')
+	se4segm=string.join(xse4[resi-1:resi+8],'')
+	dat.append((bmrid,pcs[selpcnum],seqsegm,secsegm,se4segm,resi,zsco))
+	##print 'data: %5s %7.3f %9s %9s %9s %3d'%dat[-1][:-1],resn,ss8,ss4,se4segm[4],
+    if debug:print 'found pcs:',bmrid,selss,selpcnum,len(dat)
     return dat
 
 subss8={'H':'HGI','S':'E','C':'-TSB'}
@@ -471,16 +471,16 @@ def avenscorr(params,probs,numres):
     #probability weighted sum of N in windows of +-4
     #TODO same prob weighted sum for A
     X=array([[[[[[params[pc][ss][1][direc,k,j]*probs[j,n] for j in range(8)] for n in range(numres)] for k in range(4)] for direc in (0,1)] for ss in 'HSC'] for pc in (0,1)])
-    if debug:print(X.shape)
+    if debug:print X.shape
     if False:
     ##for ss in 'HSC':
       N=pari[ss][1]
       for n in range(numres):
-        for direc in (0,1):
-         for k in range(4):
-          sndk=sum([N[direc,k,j]*probs[j,n] for j in range(8)])
+	for direc in (0,1):
+	 for k in range(4):
+	  sndk=sum([N[direc,k,j]*probs[j,n] for j in range(8)])
     A=sum(X,axis=(2,3,5))
-    if debug:print(A.shape)
+    if debug:print A.shape
     return A #returns ANS
     imshow(A,interpolation='none',cmap=cm.RdBu,vmax=9,vmin=-9)
     show();1/0
@@ -488,8 +488,8 @@ def avenscorr(params,probs,numres):
 
 def writepredout(bmrid,resis,seq,pc1s,pc2s):
   out=open('predpcsnew%s.txt'%bmrid,'w')
-  if debug:print([len(x) for x in (resis,seq,pc1s,pc2s)])
-  if debug:print([x[0] for x in (resis,seq,pc1s,pc2s)])
+  if debug:print [len(x) for x in (resis,seq,pc1s,pc2s)]
+  if debug:print [x[0] for x in (resis,seq,pc1s,pc2s)]
   for i,ri in enumerate(resis):
     aai=seq[int(ri)-1]
     out.write('%3d %1s %7.3f %7.3f\n'%(ri,aai,pc1s[i],pc2s[i]))
@@ -505,7 +505,7 @@ def init_corvals():
   gnums=(0,3,4)
   for sellab in corvals:
     ss=sellab[0]
-    pcnum=int(sellab[1])-1
+    pcnum=string.atoi(sellab[1])-1
     aar,ssr,dct8=corvals[sellab]
     A=array(aar).reshape((9,20))
     N=array(ssr).reshape((2,4,8))
@@ -526,15 +526,15 @@ def init_corvals():
        nsum=sum(sum(N,axis=1),axis=0)
        if ss=='S':gsnsum=nsum[gnums[i]]
        else:
-        probs,labs=ssprobs[ss]
-        gsnsum=average([nsum[gnums[i]+k] for k in range(len(probs))],weights=probs)
+	probs,labs=ssprobs[ss]
+	gsnsum=average([nsum[gnums[i]+k] for k in range(len(probs))],weights=probs)
        ##print 'gsnsum',pcnum,ss,refval,gsnsum,gsnsum+refval
        params[pcnum]['NS'].append(gsnsum)
       if False:
        subplot(331+pcnum*3+i)
        title('%s%s %8.4f'%(ss,pcnum+1,gsnsum+refval))
        ##imshow(hstack((N[0,:,:],N[1,:,:])),interpolation='none',cmap=cm.RdBu,vmax=5,vmin=-5)
-       imshow(vstack((N[0,list(range(3,-1,-1)),:],N[1,:,:])),interpolation='none',cmap=cm.RdBu,vmax=5,vmin=-5)
+       imshow(vstack((N[0,range(3,-1,-1),:],N[1,:,:])),interpolation='none',cmap=cm.RdBu,vmax=5,vmin=-5)
        ##xticks(arange(16),allss8+allss8)
        xticks(arange(8),allss8)
        ##yticks(arange(4),'0123')
@@ -557,8 +557,8 @@ def updateparamswithseq(params,seq):
     ##numres=len(seq)-4;print numres
     numres=len(seq)
     if debug:
-     print(numres)
-     print(''.join(seq))
+     print numres
+     print ''.join(seq)
     s8mats=[]
     seq4=seq+['G','G','G','G']
     for pcnum in range(3):
@@ -567,18 +567,18 @@ def updateparamswithseq(params,seq):
       for i,ss in enumerate(ss3s):
        A,N=params[pcnum][ss]
        for n in range(numres):
-        ##cgn=sum([A[k+4][aa1s3.index(seq[n+k])] for k in range(-4,5)])
-        cgn=sum([A[k+4][aa1s3.index(seq4[n+k])] for k in range(-4,5)])
-        ##print i,n,pcnum,ss,cgn
-        S[i,n]=cgn
-        for j in indss3[ss]:
-          S8[j,n]=cgn+params[pcnum]['D0'][allss8[j]]
+	##cgn=sum([A[k+4][aa1s3.index(seq[n+k])] for k in range(-4,5)])
+	cgn=sum([A[k+4][aa1s3.index(seq4[n+k])] for k in range(-4,5)])
+	##print i,n,pcnum,ss,cgn
+	S[i,n]=cgn
+	for j in indss3[ss]:
+	  S8[j,n]=cgn+params[pcnum]['D0'][allss8[j]]
        ##if pcnum==0:##imshow(S,interpolation='none',cmap=cm.RdBu,vmax=2,vmin=-2)
        if False:
-        subplot(311+pcnum)
-        imshow(S8[:,:100],interpolation='none',cmap=cm.RdBu,vmax=5,vmin=-5)
-        xticks(arange(100),seq[:100])
-        yticks(arange(8),allss8)
+	subplot(311+pcnum)
+	imshow(S8[:,:100],interpolation='none',cmap=cm.RdBu,vmax=5,vmin=-5)
+	xticks(arange(100),seq[:100])
+	yticks(arange(8),allss8)
       params[pcnum]['S8']=S8
       s8mats.append(S8)
     ##show();1/0
@@ -591,13 +591,13 @@ def read_priors(name):
    cols=['r','m','w','g','k','0.5','c','b']
    priors=[]
    for lin in buf:
-        resi=eval(lin[0])
-        ##fracs=[eval(x) for x in lin[3:]]
-        ##fracs=[eval(lin[3+i]) for i in (0,1,2,5,6,7,4,3)] for visuals
-        fracs=[eval(lin[3+i]) for i in (0,1,2,3,7,5,6,4)]
-        priors.append(fracs)
-        ##acum=cumsum([0.0]+fracs)
-        ##[bar(resi,fracs[i],bottom=acum[i],color=cols[i],edgecolor=cols[i]) for i in range(8)]
+	resi=eval(lin[0])
+	##fracs=[eval(x) for x in lin[3:]]
+	##fracs=[eval(lin[3+i]) for i in (0,1,2,5,6,7,4,3)] for visuals
+	fracs=[eval(lin[3+i]) for i in (0,1,2,3,7,5,6,4)]
+	priors.append(fracs)
+	##acum=cumsum([0.0]+fracs)
+	##[bar(resi,fracs[i],bottom=acum[i],color=cols[i],edgecolor=cols[i]) for i in range(8)]
    ##axis([0,resi,0,1])
    ##show()
    return array(priors).transpose()
@@ -626,7 +626,7 @@ def visprobs2(S):
    axis([0,len(S),0,10])
 
 def evaluatess83(probs,seq,s8,s3,post0,printstrs=True):
-   print(''.join(seq))
+   print ''.join(seq)
    ss8to3ind={'H':0,'G':0,'I':0,'E':1,'-':2,'T':2,'S':2,'B':2}
    ss3s='HSC'
    numres=len(s8)
@@ -635,14 +635,14 @@ def evaluatess83(probs,seq,s8,s3,post0,printstrs=True):
    post8 =[post0[:,n].max() for n in range(len(post0[0]))]
    preds3=[ss3s[ss8to3ind[sx]] for sx in preds8]
    if printstrs:
-    print(''.join(s8))
-    print(''.join(preds8))
-    print(''.join(s3))
-    print(''.join(preds3))
+    print ''.join(s8)
+    print ''.join(preds8)
+    print ''.join(s3)
+    print ''.join(preds3)
    trueprobs=average([probs[allss8.index(sx)] for sx in s8])
    Q8=sum(array(preds8)==array(s8))*1.0/numres
    Q3=sum(array(preds3)==array(s3))*1.0/numres
-   print('evaluation (probs): %6.4f %6.4f %6.4f'%(Q3,Q8,trueprobs),average(post8))
+   print 'evaluation (probs): %6.4f %6.4f %6.4f'%(Q3,Q8,trueprobs),average(post8)
    return preds8,preds3
 
 def guesss8s(params,resis,pcsobs,priors,ssigs,s8obs=None,ANS=None,dovis=False):
@@ -666,7 +666,7 @@ def guesss8s(params,resis,pcsobs,priors,ssigs,s8obs=None,ANS=None,dovis=False):
   #prior probability from RaptorX
   priors0=priors[:,ru]
   #posterior probability using Bayes
-  if debug:print(priors0.shape,probs0.shape)
+  if debug:print priors0.shape,probs0.shape
   post0=priors0*probs0
   #best (quick) guess is the maxpost selection
   maxprobs=[post0[:,n].max() for n in range(len(post0[0]))]
@@ -678,12 +678,12 @@ def guesss8s(params,resis,pcsobs,priors,ssigs,s8obs=None,ANS=None,dovis=False):
    plot(ru,pc1pred,'g')##;show();1/0
   ##plot(arange(len(maxlik)),maxlik,'g')
   ##print 'avepost:',average(maxprobs),len(maxprobs)
-  if debug:print('avepost:',average(maxprobs),average(log(maxprobs)),len(maxprobs))
-  if debug:print('avelik:',average(maxlik),len(maxlik))
+  if debug:print 'avepost:',average(maxprobs),average(log(maxprobs)),len(maxprobs)
+  if debug:print 'avelik:',average(maxlik),len(maxlik)
   #normalize post
   post=post0/sum(post0,axis=0)
   maxprobsnorm=[post[:,n].max() for n in range(len(post[0]))]
-  if debug:print('avepostnorm:',average(maxprobsnorm),exp(average(log(maxprobsnorm))),len(maxprobs))
+  if debug:print 'avepostnorm:',average(maxprobsnorm),exp(average(log(maxprobsnorm))),len(maxprobs)
   ##print 'test_post',list(post[:,7])
   newpri=priors.copy()
   newpri[:,ru]=post
@@ -713,21 +713,21 @@ def getmaxss(pri):
   ss8ind=[pri[:,n].argmax() for n in range(len(pri[0]))]
   ss8=[allss8[i] for i in ss8ind]
   ss3=[ss3s[ss8to3ind[s8]] for s8 in ss8]
-  if debug:print('ss8max:',''.join(ss8))
-  if debug:print('ss3max:',''.join(ss3))
+  if debug:print 'ss8max:',''.join(ss8)
+  if debug:print 'ss3max:',''.join(ss3)
   ##ss8+=['-','-','-','-']
   ##ss3+=['C','C','C','C']
   ##ss8indsmax=[allss8.index(ss8m) for ss8m in ss8]
   return ss8,ss3
 
 def selector(probs):
-        prob=rand()
-        cum=0
-        for j,probj in enumerate(probs):
-          cum+=probj
-          if prob<cum:
-            break
-        return j
+	prob=rand()
+	cum=0
+	for j,probj in enumerate(probs):
+	  cum+=probj
+	  if prob<cum:
+	    break
+	return j
 
 def fastselector(probs,makecum=True):
     allss8='HGIE-TSB'
@@ -736,8 +736,8 @@ def fastselector(probs,makecum=True):
     gt = probs>rand()
     try:ind=list(gt).index(True)-1
     except ValueError:
-        if debug:print('warning ValueError',probs,gt)
-        return -1
+	if debug:print 'warning ValueError',probs,gt
+	return -1
     ##print ind,allss8[ind]
     return ind
 
@@ -753,423 +753,423 @@ class SSparameters(Environment):
 
 
     def __init__(self,bmrid):
-        self.bmrid=bmrid
-        return
-        secbuf=initfil2('rungsshits.txt')
-        secdct={}
-        for lin in secbuf:secdct[lin[1]]=lin[2]
-        seqbuf=initfil2('refseqshits.txt')
-        seqdct={}
-        for lin in seqbuf:seqdct[lin[1]]=lin[2]
+	self.bmrid=bmrid
+	return
+	secbuf=initfil2('rungsshits.txt')
+	secdct={}
+	for lin in secbuf:secdct[lin[1]]=lin[2]
+	seqbuf=initfil2('refseqshits.txt')
+	seqdct={}
+	for lin in seqbuf:seqdct[lin[1]]=lin[2]
         self.secdct=secdct
-        self.seqdct=seqdct
+	self.seqdct=seqdct
 
     def init_priors_basic(self):
-        aas='GPCTNSVWFHDYIMLKRQAE'
-        ##fmat=initfil2('fracmat8.pck')
-        ##fmat=eval(initfil('fracmat8.json')[0][:-1])
-        fmat=[[0.14211076280041798, 0.034482758620689655, 0.00052246603970741907, 0.14263322884012539, 0.20585161964472309, 0.27795193312434691, 0.18652037617554859, 0.0099268547544409617], [0.15732217573221757, 0.057740585774058578, 0.0, 0.099581589958158995, 0.40083682008368199, 0.1790794979079498, 0.092887029288702933, 0.012552301255230125], [0.21404682274247491, 0.046822742474916385, 0.0, 0.32441471571906355, 0.23076923076923078, 0.096989966555183951, 0.073578595317725759, 0.013377926421404682], [0.23194444444444445, 0.036805555555555557, 0.00069444444444444447, 0.29375000000000001, 0.2298611111111111, 0.10208333333333333, 0.089583333333333334, 0.015277777777777777], [0.22014260249554368, 0.049910873440285206, 0.0, 0.1497326203208556, 0.25311942959001782, 0.19607843137254902, 0.11853832442067737, 0.012477718360071301], [0.24803664921465968, 0.06413612565445026, 0.0, 0.21269633507853403, 0.2349476439790576, 0.12172774869109948, 0.10471204188481675, 0.0137434554973822], [0.27904391328515843, 0.019455252918287938, 0.0, 0.44024458032240132, 0.14508060033351863, 0.054474708171206226, 0.047804335742078929, 0.013896609227348526], [0.36533333333333334, 0.066666666666666666, 0.0, 0.26933333333333331, 0.13600000000000001, 0.087999999999999995, 0.053333333333333337, 0.021333333333333333], [0.33893805309734515, 0.04247787610619469, 0.0, 0.30442477876106194, 0.16371681415929204, 0.070796460176991149, 0.068141592920353988, 0.011504424778761062], [0.30161579892280072, 0.052064631956912029, 0.0, 0.20825852782764812, 0.20287253141831238, 0.13824057450628366, 0.07899461400359066, 0.017953321364452424], [0.27330374128091312, 0.062143310082435003, 0.00063411540900443881, 0.11921369689283449, 0.25618262523779328, 0.15916296766011415, 0.11921369689283449, 0.010145846544071021], [0.33054393305439328, 0.039748953974895397, 0.0010460251046025104, 0.30439330543933052, 0.14644351464435146, 0.092050209205020925, 0.064853556485355651, 0.020920502092050208], [0.3210130047912389, 0.02190280629705681, 0.0, 0.3867214236824093, 0.1567419575633128, 0.045174537987679675, 0.052703627652292952, 0.015742642026009581], [0.42247191011235957, 0.024719101123595506, 0.0, 0.26292134831460673, 0.16629213483146069, 0.053932584269662923, 0.060674157303370786, 0.008988764044943821], [0.41263782866836302, 0.037319762510602206, 0.0, 0.26463104325699743, 0.15097540288379982, 0.066157760814249358, 0.056827820186598814, 0.011450381679389313], [0.38017651052274271, 0.04684317718940937, 0.0, 0.17107942973523421, 0.15953835709436523, 0.14460285132382891, 0.086218601493550581, 0.011541072640868975], [0.38118022328548645, 0.043859649122807015, 0.0, 0.21850079744816586, 0.16267942583732056, 0.098883572567783087, 0.081339712918660281, 0.013556618819776715], [0.449438202247191, 0.048314606741573035, 0.0, 0.15842696629213482, 0.16179775280898875, 0.094382022471910118, 0.07528089887640449, 0.012359550561797753], [0.47163912460920054, 0.04644930772666369, 0.0, 0.1866904868244752, 0.13443501563197857, 0.0933452434122376, 0.06163465832961143, 0.0058061634658329612], [0.44922118380062304, 0.058566978193146414, 0.00062305295950155766, 0.15015576323987539, 0.14080996884735203, 0.11775700934579439, 0.077258566978193152, 0.0056074766355140183]]
-        pri=[]
-        numres=len
-        for i,aa in enumerate(self.seq):
-          fracs=[fmat[aas.index(aa)][j] for j in range(8)]
-          pri.append(array(fracs))
-        return array(pri).transpose()
+	aas='GPCTNSVWFHDYIMLKRQAE'
+	##fmat=initfil2('fracmat8.pck')
+	##fmat=eval(initfil('fracmat8.json')[0][:-1])
+	fmat=[[0.14211076280041798, 0.034482758620689655, 0.00052246603970741907, 0.14263322884012539, 0.20585161964472309, 0.27795193312434691, 0.18652037617554859, 0.0099268547544409617], [0.15732217573221757, 0.057740585774058578, 0.0, 0.099581589958158995, 0.40083682008368199, 0.1790794979079498, 0.092887029288702933, 0.012552301255230125], [0.21404682274247491, 0.046822742474916385, 0.0, 0.32441471571906355, 0.23076923076923078, 0.096989966555183951, 0.073578595317725759, 0.013377926421404682], [0.23194444444444445, 0.036805555555555557, 0.00069444444444444447, 0.29375000000000001, 0.2298611111111111, 0.10208333333333333, 0.089583333333333334, 0.015277777777777777], [0.22014260249554368, 0.049910873440285206, 0.0, 0.1497326203208556, 0.25311942959001782, 0.19607843137254902, 0.11853832442067737, 0.012477718360071301], [0.24803664921465968, 0.06413612565445026, 0.0, 0.21269633507853403, 0.2349476439790576, 0.12172774869109948, 0.10471204188481675, 0.0137434554973822], [0.27904391328515843, 0.019455252918287938, 0.0, 0.44024458032240132, 0.14508060033351863, 0.054474708171206226, 0.047804335742078929, 0.013896609227348526], [0.36533333333333334, 0.066666666666666666, 0.0, 0.26933333333333331, 0.13600000000000001, 0.087999999999999995, 0.053333333333333337, 0.021333333333333333], [0.33893805309734515, 0.04247787610619469, 0.0, 0.30442477876106194, 0.16371681415929204, 0.070796460176991149, 0.068141592920353988, 0.011504424778761062], [0.30161579892280072, 0.052064631956912029, 0.0, 0.20825852782764812, 0.20287253141831238, 0.13824057450628366, 0.07899461400359066, 0.017953321364452424], [0.27330374128091312, 0.062143310082435003, 0.00063411540900443881, 0.11921369689283449, 0.25618262523779328, 0.15916296766011415, 0.11921369689283449, 0.010145846544071021], [0.33054393305439328, 0.039748953974895397, 0.0010460251046025104, 0.30439330543933052, 0.14644351464435146, 0.092050209205020925, 0.064853556485355651, 0.020920502092050208], [0.3210130047912389, 0.02190280629705681, 0.0, 0.3867214236824093, 0.1567419575633128, 0.045174537987679675, 0.052703627652292952, 0.015742642026009581], [0.42247191011235957, 0.024719101123595506, 0.0, 0.26292134831460673, 0.16629213483146069, 0.053932584269662923, 0.060674157303370786, 0.008988764044943821], [0.41263782866836302, 0.037319762510602206, 0.0, 0.26463104325699743, 0.15097540288379982, 0.066157760814249358, 0.056827820186598814, 0.011450381679389313], [0.38017651052274271, 0.04684317718940937, 0.0, 0.17107942973523421, 0.15953835709436523, 0.14460285132382891, 0.086218601493550581, 0.011541072640868975], [0.38118022328548645, 0.043859649122807015, 0.0, 0.21850079744816586, 0.16267942583732056, 0.098883572567783087, 0.081339712918660281, 0.013556618819776715], [0.449438202247191, 0.048314606741573035, 0.0, 0.15842696629213482, 0.16179775280898875, 0.094382022471910118, 0.07528089887640449, 0.012359550561797753], [0.47163912460920054, 0.04644930772666369, 0.0, 0.1866904868244752, 0.13443501563197857, 0.0933452434122376, 0.06163465832961143, 0.0058061634658329612], [0.44922118380062304, 0.058566978193146414, 0.00062305295950155766, 0.15015576323987539, 0.14080996884735203, 0.11775700934579439, 0.077258566978193152, 0.0056074766355140183]]
+	pri=[]
+	numres=len
+	for i,aa in enumerate(self.seq):
+	  fracs=[fmat[aas.index(aa)][j] for j in range(8)]
+	  pri.append(array(fracs))
+	return array(pri).transpose()
 
     def initparameters(self,usesimple=False,ss8pref=''):
-        if usesimple:self.priors=self.init_priors_basic()
-        else:
-          try:self.priors=read_priors(ss8pref+self.bmrid+'.ss8') #TODO generalize path...
-          except IOError:
-            print('warning: ss8 prediction from sequence not found - using simple')
-            self.priors=self.init_priors_basic()
-        #priors from DeepCNF (RaptorXproperty, single sequence)
-        for i,ires in enumerate(self.resis):
-          if self.disordered[i]:
-            if debug:print('isdisordered:',self.bmrid,ires,self.zscores[i],self.priors[-4,ires-1],self.priors[-2,ires-1])
-            self.priors[:,ires-1]=[0,0,0,0.05,0.8,0,0.2,0]#none or bend (-/S)
-        self.params=init_corvals()
-        updateparamswithseq(self.params,self.seq)
+	if usesimple:self.priors=self.init_priors_basic()
+	else:
+	  try:self.priors=read_priors(ss8pref+self.bmrid+'.ss8') #TODO generalize path...
+	  except IOError:
+	    print 'warning: ss8 prediction from sequence not found - using simple'
+	    self.priors=self.init_priors_basic()
+	#priors from DeepCNF (RaptorXproperty, single sequence)
+	for i,ires in enumerate(self.resis):
+	  if self.disordered[i]:
+	    if debug:print 'isdisordered:',self.bmrid,ires,self.zscores[i],self.priors[-4,ires-1],self.priors[-2,ires-1]
+	    self.priors[:,ires-1]=[0,0,0,0.05,0.8,0,0.2,0]#none or bend (-/S)
+	self.params=init_corvals()
+	updateparamswithseq(self.params,self.seq)
 
     def set_observed(self):
-        bmrid=self.bmrid
-        seq=self.seqdct[bmrid]
-        sec=self.secdct[bmrid]
-        self.seq,self.s8obs,self.s3obs=getpcdata(bmrid,'','',seq,sec,pref='7hitsnew',return3=True)
-        #TODO implement simpler init of obs? and separate init of pc1sobs (2) to other method
-        self.ss8inds=[self.allss8.index(ss8) for ss8 in self.s8obs]
-        print('observed s8',''.join(self.s8obs))
-        print('observed s3',''.join(self.s3obs))
-        ##self.resis,pc1sobs,pc2sobs=getobsfromzfile(bmrid,'7hitsnew')
-        ##self.resis,pc1sobs,pc2sobs,zscores=getobsfromzfile(bmrid,'7hits14')
-        self.resis,pc1sobs,pc2sobs,zscores=getobsfromzfile(bmrid,'7hitsnew')
-        self.mini=self.resis[0]
-        self.maxi=self.resis[-1]
-        print('mini and maxi:',self.mini,self.maxi)
-        self.ru=array(self.resis-1,dtype=int)
-        self.pcsobsref=(pc1sobs,pc2sobs)
-        self.zscores=array(zscores)
-        self.disordered=self.zscores<8.0
+	bmrid=self.bmrid
+	seq=self.seqdct[bmrid]
+	sec=self.secdct[bmrid]
+	self.seq,self.s8obs,self.s3obs=getpcdata(bmrid,'','',seq,sec,pref='7hitsnew',return3=True)
+	#TODO implement simpler init of obs? and separate init of pc1sobs (2) to other method
+  	self.ss8inds=[self.allss8.index(ss8) for ss8 in self.s8obs]
+  	print 'observed s8',''.join(self.s8obs)
+  	print 'observed s3',''.join(self.s3obs)
+	##self.resis,pc1sobs,pc2sobs=getobsfromzfile(bmrid,'7hitsnew')
+	##self.resis,pc1sobs,pc2sobs,zscores=getobsfromzfile(bmrid,'7hits14')
+	self.resis,pc1sobs,pc2sobs,zscores=getobsfromzfile(bmrid,'7hitsnew')
+	self.mini=self.resis[0]
+	self.maxi=self.resis[-1]
+	print 'mini and maxi:',self.mini,self.maxi
+	self.ru=array(self.resis-1,dtype=int)
+	self.pcsobsref=(pc1sobs,pc2sobs)
+	self.zscores=array(zscores)
+	self.disordered=self.zscores<8.0
 
     def set_input(self,seq,resis,pc1sobs,pc2sobs,zsco):
-        bmrid=self.bmrid
-        ##self.ss8inds=[self.allss8.index(ss8) for ss8 in self.s8obs]
-        self.seq=[s for s in seq]
-        self.resis=array(resis)
-        self.mini=self.resis[0]
-        self.maxi=self.resis[-1]
-        print('mini and maxi:',self.mini,self.maxi)
-        self.ru=array(self.resis-1,dtype=int)
-        self.pcsobsref=(pc1sobs,pc2sobs)
-        ##print zsco
-        self.zscores=array(zsco)
-        self.disordered=self.zscores<8.0
-        self.s8obs=None #no observed - this is de novo prediction
-        self.s3obs=None
+	bmrid=self.bmrid
+  	##self.ss8inds=[self.allss8.index(ss8) for ss8 in self.s8obs]
+	self.seq=[s for s in seq]
+	self.resis=array(resis)
+	self.mini=self.resis[0]
+	self.maxi=self.resis[-1]
+	print 'mini and maxi:',self.mini,self.maxi
+	self.ru=array(self.resis-1,dtype=int)
+	self.pcsobsref=(pc1sobs,pc2sobs)
+	##print zsco
+	self.zscores=array(zsco)
+	self.disordered=self.zscores<8.0
+	self.s8obs=None #no observed - this is de novo prediction
+	self.s3obs=None
 
     def make_guess(self):
-        self.ss8priors,post0=guesss8s(self.params,self.resis,self.pcsobsref,self.priors,self.ssigs,self.s8obs)
+	self.ss8priors,post0=guesss8s(self.params,self.resis,self.pcsobsref,self.priors,self.ssigs,self.s8obs)
 
     def evaluate_priors(self):
-        probs=self.ss8priors
-        trueprobs=average([probs[self.allss8.index(sx)] for sx in self.s8obs])
-        print('trueprobs (priors):',trueprobs)
-        return trueprobs
+	probs=self.ss8priors
+	trueprobs=average([probs[self.allss8.index(sx)] for sx in self.s8obs])
+	print 'trueprobs (priors):',trueprobs
+	return trueprobs
 
 class SSopt(GenericIndividual):
 
     def __init__(self,ssp,s8,s3=None):
-        self.ssp=ssp
-        self.s8=s8
-        if s3==None:
-          ss3s='HSC'
-          ss8to3ind={'H':0,'G':0,'I':0,'E':1,'-':2,'T':2,'S':2,'B':2}
-          s3=[ss3s[ss8to3ind[s8i]] for s8i in s8]
-        self.s3=s3
-        self.ss8inds=[self.ssp.allss8.index(ss8) for ss8 in (self.s8+['-','-','-','-'])]
+	self.ssp=ssp
+	self.s8=s8
+	if s3==None:
+	  ss3s='HSC'
+	  ss8to3ind={'H':0,'G':0,'I':0,'E':1,'-':2,'T':2,'S':2,'B':2}
+	  s3=[ss3s[ss8to3ind[s8i]] for s8i in s8]
+	self.s3=s3
+	self.ss8inds=[self.ssp.allss8.index(ss8) for ss8 in (self.s8+['-','-','-','-'])]
 
     def get_clone(self,need_segments=False):
-        s8=self.s8[:]
-        s3=self.s3[:]
-        new=SSopt(self.ssp,s8,s3)
+	s8=self.s8[:]
+	s3=self.s3[:]
+	new=SSopt(self.ssp,s8,s3)
         ##new.init_segments()
-        ##new.segments=Segments(s8,s3)
-        if need_segments:new.segments=self.segments.get_clone()
-        new.S9s=[s9.copy() for s9 in self.S9s]
-        self.backpcs=[None,None]#must be updated #TJEK OK?
-        #new.ss8inds=self.ss8inds[:]
-        new.post0ref=self.post0ref.copy()
-        return new
+	##new.segments=Segments(s8,s3)
+	if need_segments:new.segments=self.segments.get_clone()
+	new.S9s=[s9.copy() for s9 in self.S9s]
+	self.backpcs=[None,None]#must be updated #TJEK OK?
+	#new.ss8inds=self.ss8inds[:]
+	new.post0ref=self.post0ref.copy()
+	return new
 
     def backcalcPCs(self,pcnum):
-        subss8={'H':'HGI','S':'E','C':'-TSB'}
-        indss3={'H':[0,1,2],'S':[3],'C':[4,5,6,7]}
-        indss8={'G':1,'I':2,'T':5,'S':6,'B':7}
-        allss8='HGIE-TSB'
-        numres=len(self.ssp.seq)##-4
-        pari=self.ssp.params[pcnum]
-        S8=pari['S8']
-        self.ss8inds=[self.ssp.allss8.index(ss8) for ss8 in (self.s8+['-','-','-','-'])]
-        ss8inds=self.ss8inds
-        s8vals=[S8[ss8inds[n],n] for n in range(numres)]
-        S9=zeros((9,numres))
-        S9[4]=s8vals
-        for n in range(numres):
-          gssn=self.s3[n]
-          N=pari[gssn][1]
-          bck=[N[0,k,ss8inds[n-1-k]] for k in range(4-1,-1,-1)]
-          fwd=[N[1,k,ss8inds[n+1+k]] for k in range(4)]
-          S9[:4,n]=bck
-          S9[5:,n]=fwd
-        subtot=sum(S9,axis=0)
-        return subtot,S9
+	subss8={'H':'HGI','S':'E','C':'-TSB'}
+	indss3={'H':[0,1,2],'S':[3],'C':[4,5,6,7]}
+	indss8={'G':1,'I':2,'T':5,'S':6,'B':7}
+	allss8='HGIE-TSB'
+	numres=len(self.ssp.seq)##-4
+	pari=self.ssp.params[pcnum]
+	S8=pari['S8']
+	self.ss8inds=[self.ssp.allss8.index(ss8) for ss8 in (self.s8+['-','-','-','-'])]
+	ss8inds=self.ss8inds
+	s8vals=[S8[ss8inds[n],n] for n in range(numres)]
+	S9=zeros((9,numres))
+	S9[4]=s8vals
+	for n in range(numres):
+	  gssn=self.s3[n]
+	  N=pari[gssn][1]
+	  bck=[N[0,k,ss8inds[n-1-k]] for k in range(4-1,-1,-1)]
+	  fwd=[N[1,k,ss8inds[n+1+k]] for k in range(4)]
+	  S9[:4,n]=bck
+	  S9[5:,n]=fwd
+	subtot=sum(S9,axis=0)
+	return subtot,S9
 
     def backcalcmut(self,n0,ss8m):##,isnew8=True):
-        M=len(ss8m)
-        if M>1:
-          if debug:print('NOTE: block-mutation',ss8m,M,n0)
-        subss8={'H':'HGI','S':'E','C':'-TSB'}
-        indss3={'H':[0,1,2],'S':[3],'C':[4,5,6,7]}
-        indss8={'G':1,'I':2,'T':5,'S':6,'B':7}
-        allss8='HGIE-TSB'
-        conv8to3={'G':'H', 'H':'H', 'I':'H', 'E':'S', 'B':'C','T':'C', 'S':'C', '-':'C','U':'U'}
-        ss8inds=[allss8.index(ss8) for ss8 in (self.s8+['-','-','-','-'])]#generate fresh local
-        ##s3=self.s3
-        s3new=self.s3[:]
-        for k in range(M):
-          ss8ind=allss8.index(ss8m[k])
-          if debug:print(M,k,n0,n0+k,len(ss8inds),ss8ind)
-          ss8inds[n0+k]=ss8ind#modify only the local ss8inds
-          s3new[n0+k]=conv8to3[ss8m[k]]
-        numres=len(self.ssp.seq)
-        newS9s=[s9i.copy() for s9i in self.S9s]
-        for n in range(n0,n0+M):
-         ##isnew8=conv8to3[ss8m[n-n0]]!=s3[n]
-         for pcnum in (0,1):
-          pari=self.ssp.params[pcnum]
-          s8m=pari['S8'][ss8ind,n]
-          ##S9=self.S9s[pcnum]
-          S9=newS9s[pcnum]
-          S9[4,n]=s8m
-          if True:##isnew8: #in case of block-mutation we need this always...
-            ##gssn=s3[n]
-            gssn=s3new[n]
-            N=pari[gssn][1]
-            bck=[N[0,k,ss8inds[n-1-k]] for k in range(4-1,-1,-1)]
-            fwd=[N[1,k,ss8inds[n+1+k]] for k in range(4)]
-            S9[:4,n]=bck
-            S9[5:,n]=fwd
-          #now because ss8m is a new dssp8 class
-          for k in range(4):
+	M=len(ss8m)
+	if M>1:
+	  if debug:print 'NOTE: block-mutation',ss8m,M,n0
+	subss8={'H':'HGI','S':'E','C':'-TSB'}
+	indss3={'H':[0,1,2],'S':[3],'C':[4,5,6,7]}
+	indss8={'G':1,'I':2,'T':5,'S':6,'B':7}
+	allss8='HGIE-TSB'
+	conv8to3={'G':'H', 'H':'H', 'I':'H', 'E':'S', 'B':'C','T':'C', 'S':'C', '-':'C','U':'U'}
+	ss8inds=[allss8.index(ss8) for ss8 in (self.s8+['-','-','-','-'])]#generate fresh local
+	##s3=self.s3
+	s3new=self.s3[:]
+	for k in range(M):
+	  ss8ind=allss8.index(ss8m[k])
+	  if debug:print M,k,n0,n0+k,len(ss8inds),ss8ind
+	  ss8inds[n0+k]=ss8ind#modify only the local ss8inds
+	  s3new[n0+k]=conv8to3[ss8m[k]]
+	numres=len(self.ssp.seq)
+	newS9s=[s9i.copy() for s9i in self.S9s]
+	for n in range(n0,n0+M):
+	 ##isnew8=conv8to3[ss8m[n-n0]]!=s3[n]
+	 for pcnum in (0,1):
+	  pari=self.ssp.params[pcnum]
+	  s8m=pari['S8'][ss8ind,n]
+	  ##S9=self.S9s[pcnum]
+	  S9=newS9s[pcnum]
+	  S9[4,n]=s8m
+	  if True:##isnew8: #in case of block-mutation we need this always...
+	    ##gssn=s3[n]
+	    gssn=s3new[n]
+	    N=pari[gssn][1]
+	    bck=[N[0,k,ss8inds[n-1-k]] for k in range(4-1,-1,-1)]
+	    fwd=[N[1,k,ss8inds[n+1+k]] for k in range(4)]
+	    S9[:4,n]=bck
+	    S9[5:,n]=fwd
+	  #now because ss8m is a new dssp8 class
+	  for k in range(4):
            if n+1+k<numres:
-            ##S9[3-k,n+1+k]=pari[s3[n+1+k]][1][0,k,ss8ind]
-            S9[3-k,n+1+k]=pari[s3new[n+1+k]][1][0,k,ss8ind]
-           if n-1-k>=0:
-            ##S9[5+k,n-1-k]=pari[s3[n-1-k]][1][1,k,ss8ind]
-            S9[5+k,n-1-k]=pari[s3new[n-1-k]][1][1,k,ss8ind]
-          ##newS9s.append(S9)
-          ##subtot=sum(S9,axis=0)
-        return newS9s,ss8inds
+	    ##S9[3-k,n+1+k]=pari[s3[n+1+k]][1][0,k,ss8ind]
+	    S9[3-k,n+1+k]=pari[s3new[n+1+k]][1][0,k,ss8ind]
+	   if n-1-k>=0:
+	    ##S9[5+k,n-1-k]=pari[s3[n-1-k]][1][1,k,ss8ind]
+	    S9[5+k,n-1-k]=pari[s3new[n-1-k]][1][1,k,ss8ind]
+	  ##newS9s.append(S9)
+	  ##subtot=sum(S9,axis=0)
+	return newS9s,ss8inds
 
     def get_diff_mutation(self,n,ss8m):
-        newS9s,newss8inds=self.backcalcmut(n,ss8m)##,isnew8)
-        N=len(self.ssp.seq)
-        M=len(ss8m)
-        lr=(max(0,n-4),min(n+4+M,N))#only derive for local range
-        backpcs=[sum(newS9s[pcnum][:,lr[0]:lr[1]],axis=0) for pcnum in (0,1)]
-        locsegm=[ss8i for ss8i in ss8m]
-        news8loc=self.s8[lr[0]:n]+locsegm+self.s8[n+M:lr[1]]
-        locpost,oldloc=self.calcpostlik_local(lr,n,newss8inds,news8loc,backpcs)##,verb=True)
-        if debug:print('locpost:',locpost,locpost-oldloc)
-        self.newS9s=newS9s
-        return locpost,locpost-oldloc
+	newS9s,newss8inds=self.backcalcmut(n,ss8m)##,isnew8)
+	N=len(self.ssp.seq)
+	M=len(ss8m)
+	lr=(max(0,n-4),min(n+4+M,N))#only derive for local range
+	backpcs=[sum(newS9s[pcnum][:,lr[0]:lr[1]],axis=0) for pcnum in (0,1)]
+	locsegm=[ss8i for ss8i in ss8m]
+	news8loc=self.s8[lr[0]:n]+locsegm+self.s8[n+M:lr[1]]
+	locpost,oldloc=self.calcpostlik_local(lr,n,newss8inds,news8loc,backpcs)##,verb=True)
+	if debug:print 'locpost:',locpost,locpost-oldloc
+	self.newS9s=newS9s
+	return locpost,locpost-oldloc
 
     def backcalcbothPCs(self):
-        self.backpcs=[]
-        self.S9s=[]
-        for pcnum in (0,1):
-          pcp,S9p=self.backcalcPCs(pcnum)
-          self.backpcs.append(pcp)
-          self.S9s.append(S9p)
+	self.backpcs=[]
+	self.S9s=[]
+	for pcnum in (0,1):
+	  pcp,S9p=self.backcalcPCs(pcnum)
+	  self.backpcs.append(pcp)
+	  self.S9s.append(S9p)
 
     def calcpostlik_local(self,lr,nmut,ss8inds,s8,backpcs,verb=False):
-        allss8='HGIE-TSB'
-        numres=len(self.ssp.seq)
-        if verb:print(''.join(s8))
-        if verb:print([ss8inds[n-1] for n in range(lr[0],lr[1])])
-        if verb:print([self.ss8inds[n-1] for n in range(lr[0],lr[1])])
-        ru=self.ssp.ru
-        tru=(ru<lr[1])&(ru>=lr[0])
-        lru=ru[tru]
-        if len(lru)<1: return -999,0#dont use
-        minru=list(ru).index(min(lru))
-        newru=lru-nmut+4
-        newru-=max(0,4-nmut)#correct for N-term...OK?
-        if verb:print(lru,minru,newru)
-        ##print backpcs
-        predsnew=[pcp[newru] for pcp in backpcs]
-        if verb:print(predsnew)
-        ##predsold=[self.backpcs[pc][ru][minru:minru+len(lru)] for pc in (0,1)]
-        ##if verb:print predsold
-        pcsobs=[self.ssp.pcsobsref[pc][minru:minru+len(lru)] for pc in (0,1)]
-        if verb:print(pcsobs)
-        #NOTE: s8 is local "9mer"
-        sig=array([[self.ssp.ssigs[pcnum,allss8.index(s8[n])] for n in newru] for pcnum in (0,1)])
-        if verb:print(sig)
-        dev=array([predsnew[pc]-pcsobs[pc] for pc in (0,1)])
-        if verb:print(dev)
-        dev/=sig
-        if verb:print('devloc:',dev)
-        probsref=exp(-0.5*(array(dev)**2))/sig
-        probs0ref=probsref[0]*probsref[1]
-        if verb:print(probs0ref)
-        #NOTE: ss8inds has full length
-        priors=array([self.ssp.priors[ss8inds[int(n)-1],n-1] for n in lru+1])
-        if verb:print('priorsloc:',priors)
-        post0ref=probs0ref*priors
-        self.post0refnewdata=post0ref,(minru,minru+len(lru))
-        if verb:print(post0ref)
-        post0reffirst=self.post0ref[minru:minru+len(lru)]
-        if verb:print(post0reffirst)
-        return sum(log(post0ref)),sum(log(post0reffirst))
+	allss8='HGIE-TSB'
+	numres=len(self.ssp.seq)
+	if verb:print ''.join(s8)
+	if verb:print [ss8inds[n-1] for n in range(lr[0],lr[1])]
+	if verb:print [self.ss8inds[n-1] for n in range(lr[0],lr[1])]
+	ru=self.ssp.ru
+	tru=(ru<lr[1])&(ru>=lr[0])
+	lru=ru[tru]
+	if len(lru)<1: return -999,0#dont use
+	minru=list(ru).index(min(lru))
+	newru=lru-nmut+4
+	newru-=max(0,4-nmut)#correct for N-term...OK?
+	if verb:print lru,minru,newru
+	##print backpcs
+	predsnew=[pcp[newru] for pcp in backpcs]
+	if verb:print predsnew
+	##predsold=[self.backpcs[pc][ru][minru:minru+len(lru)] for pc in (0,1)]
+	##if verb:print predsold
+	pcsobs=[self.ssp.pcsobsref[pc][minru:minru+len(lru)] for pc in (0,1)]
+	if verb:print pcsobs
+	#NOTE: s8 is local "9mer"
+	sig=array([[self.ssp.ssigs[pcnum,allss8.index(s8[n])] for n in newru] for pcnum in (0,1)])
+	if verb:print sig
+	dev=array([predsnew[pc]-pcsobs[pc] for pc in (0,1)])
+	if verb:print dev
+	dev/=sig
+	if verb:print 'devloc:',dev
+	probsref=exp(-0.5*(array(dev)**2))/sig
+	probs0ref=probsref[0]*probsref[1]
+	if verb:print probs0ref
+	#NOTE: ss8inds has full length
+	priors=array([self.ssp.priors[ss8inds[int(n)-1],n-1] for n in lru+1])
+	if verb:print 'priorsloc:',priors
+	post0ref=probs0ref*priors
+	self.post0refnewdata=post0ref,(minru,minru+len(lru))
+	if verb:print post0ref
+	post0reffirst=self.post0ref[minru:minru+len(lru)]
+	if verb:print post0reffirst
+	return sum(log(post0ref)),sum(log(post0reffirst))
 
     def calcpostlik(self):
-        allss8='HGIE-TSB'
-        ru=self.ssp.ru
-        predsnew=[pcp[ru] for pcp in self.backpcs]
-        ss8inds=self.ss8inds
-        ##sig=array([[self.ssp.ssigs[pcnum,'HSC'.index(self.s3[int(n)-1])] for n in self.ssp.resis] for pcnum in (0,1)])
-        sig=array([[self.ssp.ssigs[pcnum,allss8.index(self.s8[int(n)-1])] for n in self.ssp.resis] for pcnum in (0,1)])
-        dev=array([predsnew[pc]-self.ssp.pcsobsref[pc] for pc in (0,1)])
-        dev/=sig
-        ##print 'dev:',dev[:,180:189]
-        probsref=exp(-0.5*(array(dev)**2))/sig
-        probs0ref=probsref[0]*probsref[1]
-        ##post0ref=probs0ref*array([self.ssp.priors[ss8inds[int(n)-1],n-1] for n in self.ssp.resis])
-        priors=array([self.ssp.priors[ss8inds[int(n)-1],n-1] for n in self.ssp.resis])
-        ##print 'priors:',priors[175:184]
-        ##post0ref=probs0ref*sqrt(priors) would this help although not strictly "correct"?
-        post0ref=probs0ref*priors
-        self.post0ref=post0ref
-        self.score=sum(log(post0ref))
-        self.energy=-self.score
-        ave=self.score/len(post0ref)
-        if debug:print('sumpostlik',self.score,ave)
-        return ave
+	allss8='HGIE-TSB'
+	ru=self.ssp.ru
+	predsnew=[pcp[ru] for pcp in self.backpcs]
+	ss8inds=self.ss8inds
+	##sig=array([[self.ssp.ssigs[pcnum,'HSC'.index(self.s3[int(n)-1])] for n in self.ssp.resis] for pcnum in (0,1)])
+	sig=array([[self.ssp.ssigs[pcnum,allss8.index(self.s8[int(n)-1])] for n in self.ssp.resis] for pcnum in (0,1)])
+	dev=array([predsnew[pc]-self.ssp.pcsobsref[pc] for pc in (0,1)])
+	dev/=sig
+	##print 'dev:',dev[:,180:189]
+	probsref=exp(-0.5*(array(dev)**2))/sig
+	probs0ref=probsref[0]*probsref[1]
+	##post0ref=probs0ref*array([self.ssp.priors[ss8inds[int(n)-1],n-1] for n in self.ssp.resis])
+	priors=array([self.ssp.priors[ss8inds[int(n)-1],n-1] for n in self.ssp.resis])
+	##print 'priors:',priors[175:184]
+	##post0ref=probs0ref*sqrt(priors) would this help although not strictly "correct"?
+	post0ref=probs0ref*priors
+	self.post0ref=post0ref
+	self.score=sum(log(post0ref))
+	self.energy=-self.score
+	ave=self.score/len(post0ref)
+	if debug:print 'sumpostlik',self.score,ave
+	return ave
 
     def evaluate(self,flag='normal'):
-        ps8=self.s8##[:-4]
-        ps3=self.s3##[:-4]
-        os8=self.ssp.s8obs##[:-4]
-        os3=self.ssp.s3obs##[:-4]
-        numres=len(os3)
-        if debug:print(len(ps8),len(os8),numres)
-        if flag=='byres':
-          tr8= array(ps8)==array(os8)
-          tr3= array(ps3)==array(os3)
-          return tr8,tr3
-        Q8=sum(array(ps8)==array(os8))*1.0/numres
-        Q3=sum(array(ps3)==array(os3))*1.0/numres
-        if debug:print('evaluation: %6s %6.4f %6.4f'%(flag,Q3,Q8))
-        return Q8,Q3
+	ps8=self.s8##[:-4]
+	ps3=self.s3##[:-4]
+	os8=self.ssp.s8obs##[:-4]
+	os3=self.ssp.s3obs##[:-4]
+	numres=len(os3)
+	if debug:print len(ps8),len(os8),numres
+	if flag=='byres':
+  	  tr8= array(ps8)==array(os8)
+  	  tr3= array(ps3)==array(os3)
+	  return tr8,tr3
+  	Q8=sum(array(ps8)==array(os8))*1.0/numres
+  	Q3=sum(array(ps3)==array(os3))*1.0/numres
+  	if debug:print 'evaluation: %6s %6.4f %6.4f'%(flag,Q3,Q8)
+	return Q8,Q3
 
     def init_segments(self):
-        self.segments=Segments(self.s8,self.s3)
+	self.segments=Segments(self.s8,self.s3)
 
     def choose_mutation(self,verb=False):
-        ##probs=some numbers
-        probs=(0.3,0.2,0.2,0.05,0.05,0.12,0.08)#tentative assignments
-        ind=selector(probs)
-        ##print 'check selector',ind
-        info='coil'
-        flags=['coil','incr','decr','split','del','H2G','C2G']
-        #each case is a rational designed mutation (yet randomly selected)
-        if ind==0:
-          if verb:print('point-mutating s8 in coil->coil') 
-          #randomly choose target position and secondary structure
-          i,ss8=self.segments.choose_coil_point()
-        elif ind==1:
-          if verb:print('incrementing secondary element by one')
-          i,ss8,info=self.segments.choose_incr_point()#info is direction
-        elif ind==2:
-          if verb:print('decrementing secondary element')
-          i,ss8,info=self.segments.choose_decr_point()
-        elif ind==3:
-          if verb:print('split by mutating secondary element at point: ss -> coil (large ss)')
-          i,ss8,info=self.segments.choose_split_point()
-        #below multi-point mutations (range)
-        elif ind==4:
-          if verb:print('deleting secondary element ss -> coil')
-          i,ss8,info=self.segments.choose_delete_elem()#ss8 is len>1 segment of ss8s, info=sl
-        elif ind==5:
-          if verb:print('overwrite (terminal) segment of helix to 3_10')
-          i,ss8,info=self.segments.choose_overwriteH2G()#info=direc
-        elif ind==6:
-          if verb:print('overwrite 3-long segment of coil to 3_10')
-          i,ss8,info=self.segments.choose_overwriteC2G()
-        if i==None:return self.choose_mutation(verb)
-        else:
+	##probs=some numbers
+	probs=(0.3,0.2,0.2,0.05,0.05,0.12,0.08)#tentative assignments
+	ind=selector(probs)
+	##print 'check selector',ind
+	info='coil'
+	flags=['coil','incr','decr','split','del','H2G','C2G']
+	#each case is a rational designed mutation (yet randomly selected)
+	if ind==0:
+	  if verb:print 'point-mutating s8 in coil->coil' 
+	  #randomly choose target position and secondary structure
+	  i,ss8=self.segments.choose_coil_point()
+	elif ind==1:
+	  if verb:print 'incrementing secondary element by one'
+	  i,ss8,info=self.segments.choose_incr_point()#info is direction
+	elif ind==2:
+	  if verb:print 'decrementing secondary element'
+	  i,ss8,info=self.segments.choose_decr_point()
+	elif ind==3:
+	  if verb:print 'split by mutating secondary element at point: ss -> coil (large ss)'
+	  i,ss8,info=self.segments.choose_split_point()
+	#below multi-point mutations (range)
+	elif ind==4:
+	  if verb:print 'deleting secondary element ss -> coil'
+	  i,ss8,info=self.segments.choose_delete_elem()#ss8 is len>1 segment of ss8s, info=sl
+	elif ind==5:
+	  if verb:print 'overwrite (terminal) segment of helix to 3_10'
+	  i,ss8,info=self.segments.choose_overwriteH2G()#info=direc
+	elif ind==6:
+	  if verb:print 'overwrite 3-long segment of coil to 3_10'
+	  i,ss8,info=self.segments.choose_overwriteC2G()
+	if i==None:return self.choose_mutation(verb)
+	else:
          if verb:
-          print('chose mutation',flags[ind],ind,i,ss8,info,self.s8[i])
-          print(''.join(self.s8))
-          print(''.join(self.s3))
-          if ind<4:
-            print(' '*i+ss8+' '*(len(self.s8)-i-1)+'|')
-          elif flags[ind]=='del':
-            sl=len(ss8)
-            print(' '*i+ss8+' '*(len(self.s8)-i-sl)+'|')
-          elif flags[ind]=='H2G':
-            sl,direc=info
-            if direc in ['L','a']:#from left or all
-              print(' '*i+ss8+' '*(len(self.s8)-i-sl)+'|')
-            else:
-              print(' '*(i-sl)+ss8+' '*(len(self.s8)-i)+'|')
-          elif flags[ind]=='C2G':
-              sl=3
-              print(' '*i+ss8+' '*(len(self.s8)-i-sl)+'|')
-         return ind,i,ss8,info
+	  print 'chose mutation',flags[ind],ind,i,ss8,info,self.s8[i]
+	  print ''.join(self.s8)
+	  print ''.join(self.s3)
+	  if ind<4:
+	    print ' '*i+ss8+' '*(len(self.s8)-i-1)+'|'
+	  elif flags[ind]=='del':
+	    sl=len(ss8)
+	    print ' '*i+ss8+' '*(len(self.s8)-i-sl)+'|'
+	  elif flags[ind]=='H2G':
+	    sl,direc=info
+	    if direc in ['L','a']:#from left or all
+	      print ' '*i+ss8+' '*(len(self.s8)-i-sl)+'|'
+	    else:
+	      print ' '*(i-sl)+ss8+' '*(len(self.s8)-i)+'|'
+	  elif flags[ind]=='C2G':
+	      sl=3
+	      print ' '*i+ss8+' '*(len(self.s8)-i-sl)+'|'
+	 return ind,i,ss8,info
 
     def _anal_segments(self,other):
-        self.segments.comparedis(other.segments)
+	self.segments.comparedis(other.segments)
 
     def initialize_random(self,envi=None):
-        pri=self.ssp.ss8priors
-        ss3s='HSC'
-        allss8='HGIE-TSB'
-        ss8to3ind={'H':0,'G':0,'I':0,'E':1,'-':2,'T':2,'S':2,'B':2}
-        ss8ind=[fastselector(hstack(([0],pri[:,n]))) for n in range(len(pri[0]))]
-        ss8=[allss8[i] for i in ss8ind]
-        ss3=[ss3s[ss8to3ind[s8]] for s8 in ss8]
-        if debug:print('ss8rand:',''.join(ss8))
-        if debug:print('ss3rand:',''.join(ss3))
-        new=SSopt(self.ssp,ss8,ss3)
-        new.backcalcbothPCs()
-        new.calcpostlik()
-        new.init_segments() #or consider the energy is OK before initializing segments?
-        ch3,ch8=new.segments.remedy_disallowed()
-        ##q8,q3=new.evaluate()
-        ##print 'ener',new.energy,q8,q3
-        return new
+	pri=self.ssp.ss8priors
+	ss3s='HSC'
+	allss8='HGIE-TSB'
+	ss8to3ind={'H':0,'G':0,'I':0,'E':1,'-':2,'T':2,'S':2,'B':2}
+	ss8ind=[fastselector(hstack(([0],pri[:,n]))) for n in range(len(pri[0]))]
+	ss8=[allss8[i] for i in ss8ind]
+	ss3=[ss3s[ss8to3ind[s8]] for s8 in ss8]
+	if debug:print 'ss8rand:',''.join(ss8)
+	if debug:print 'ss3rand:',''.join(ss3)
+	new=SSopt(self.ssp,ss8,ss3)
+	new.backcalcbothPCs()
+	new.calcpostlik()
+	new.init_segments() #or consider the energy is OK before initializing segments?
+  	ch3,ch8=new.segments.remedy_disallowed()
+	##q8,q3=new.evaluate()
+	##print 'ener',new.energy,q8,q3
+	return new
 
     def init_from_genestr(self,s8):#TODO: update
-        ssp=None;s3=None
-        return SSopt(ssp,s8,s3)
+	ssp=None;s3=None
+	return SSopt(ssp,s8,s3)
 
     def calc_distance(self,other):
-        pass
+	pass
 
     def getid(self):
-        return ''.join(self.s8)
+	return ''.join(self.s8)
 
     def __str__(self):
-        return self.getid()
+	return self.getid()
 
     def crossover(self,other):
-        M=len(self.s8)
-        both=self,other
-        ##inds=numpy.random.random_integers(0,1,M)
-        inds=choose_random_consecutive(M,p=0.2)
-        newss8=[both[inds[i]].s8[i] for i in range(M)]
-        newopt=SSopt(self.ssp,newss8)
-        #might need to remedy newopt before returning?
-        return newopt
+	M=len(self.s8)
+	both=self,other
+	##inds=numpy.random.random_integers(0,1,M)
+	inds=choose_random_consecutive(M,p=0.2)
+	newss8=[both[inds[i]].s8[i] for i in range(M)]
+	newopt=SSopt(self.ssp,newss8)
+	#might need to remedy newopt before returning?
+	return newopt
 
     def multicrossover(self,popul,rat,size):
-        M=len(self.s8)
+	M=len(self.s8)
         nums=[popul.selectNormal(rat,size) for _ in range(M)]
-        newss8=[popul[nums[i]].s8[i] for i in range(M)]
-        newopt=SSopt(self.ssp,newss8)
-        #might need to remedy newopt before returning?
-        return newopt
-        pass
+	newss8=[popul[nums[i]].s8[i] for i in range(M)]
+	newopt=SSopt(self.ssp,newss8)
+	#might need to remedy newopt before returning?
+	return newopt
+	pass
 
     def mutate(self):
-        prob=rand()
-        print('not implemented...')
-        1/0
-           
+	prob=rand()
+	print 'not implemented...'
+	1/0
+	   
     def calculate_fitness(self,dostats=False,dovis=False):
-        self.backcalcbothPCs()
-        self.calcpostlik()
-        ##print 'fullstats:',self.ener
-        ##print 'fullstats:',rmsd,RSS,num,aic,numpars,len(params.fitdata[-1])
+	self.backcalcbothPCs()
+	self.calcpostlik()
+	##print 'fullstats:',self.ener
+	##print 'fullstats:',rmsd,RSS,num,aic,numpars,len(params.fitdata[-1])
 
     def get_class_stats(self,popul,statlen=None):
-        allss8='HGIE-TSB'
-        s8=self.s8
-        M=len(s8)
-        if statlen==None:statlen=len(popul)
-        A=[[ssopt.s8[i] for ssopt in popul[:statlen]] for i in range(M)]
-        C=array([[A[i].count(s) for s in allss8] for i in range(M)])*1.0/statlen
-        entrs=[shannon(C[i]) for i in range(M)]
-        spread=exp(-average(entrs))
+	allss8='HGIE-TSB'
+	s8=self.s8
+	M=len(s8)
+	if statlen==None:statlen=len(popul)
+	A=[[ssopt.s8[i] for ssopt in popul[:statlen]] for i in range(M)]
+	C=array([[A[i].count(s) for s in allss8] for i in range(M)])*1.0/statlen
+	entrs=[shannon(C[i]) for i in range(M)]
+	spread=exp(-average(entrs))
         ##visprobs(C.transpose())
-        probs=C.transpose()
-        trueprobs=-9.0
-        if debug:
-          trueprobs=average([probs[allss8.index(sx)] for sx in self.ssp.s8obs])
-          if debug:print('trueprobs (stats):',trueprobs,spread)
-        return trueprobs,spread,C
+	probs=C.transpose()
+	trueprobs=-9.0
+	if debug:
+	  trueprobs=average([probs[allss8.index(sx)] for sx in self.ssp.s8obs])
+	  if debug:print 'trueprobs (stats):',trueprobs,spread
+	return trueprobs,spread,C
 
 
 class Segments8(dict):
@@ -1206,599 +1206,599 @@ class Segments(dict):
 
     def __init__(self,s8=None,s3=None):
        dict.__init__(self)
-       if s8!=None:
-        self.s8=s8
-        self.s3=s3
-        self['H']={}
-        self['S']={}
-        self['C']={}
-        p3=None
-        previ=0
-        sl=1
-        self.segm=[]
-        self._ar=zeros(len(s3),dtype=int)
-        for i,s3i in enumerate(s3):
-          if s3i==p3:sl+=1
-          elif p3!=None:
-            self[p3][previ]=sl
-            self._ar[previ:previ+sl]=len(self.segm)
-            self.segm.append([p3,previ])
-            #reinitialize segment length and previ
-            sl=1
-            previ=i
-          p3=s3i
-        if True: #handle end
-            self[p3][previ]=sl
-            self._ar[previ:previ+sl]=len(self.segm)
-            self.segm.append([p3,previ])
-        if debug:print(self.segm)
-        ##print list(self._ar)
-        if debug:print(self)
+       if s8<>None:
+	self.s8=s8
+	self.s3=s3
+	self['H']={}
+	self['S']={}
+	self['C']={}
+	p3=None
+	previ=0
+	sl=1
+	self.segm=[]
+	self._ar=zeros(len(s3),dtype=int)
+	for i,s3i in enumerate(s3):
+	  if s3i==p3:sl+=1
+	  elif p3!=None:
+	    self[p3][previ]=sl
+	    self._ar[previ:previ+sl]=len(self.segm)
+	    self.segm.append([p3,previ])
+	    #reinitialize segment length and previ
+	    sl=1
+	    previ=i
+	  p3=s3i
+	if True: #handle end
+	    self[p3][previ]=sl
+	    self._ar[previ:previ+sl]=len(self.segm)
+	    self.segm.append([p3,previ])
+	if debug:print self.segm
+	##print list(self._ar)
+	if debug:print self
 
     def get_clone(self):
-        new=Segments()
-        for ss in 'HSC':
-          new[ss]=self[ss].copy()
-        new.s8=self.s8[:]
-        new.s3=self.s3[:]
-        new.segm=[lst[:] for lst in self.segm]
-        new._ar=self._ar.copy()
-        return new
+	new=Segments()
+	for ss in 'HSC':
+	  new[ss]=self[ss].copy()
+	new.s8=self.s8[:]
+	new.s3=self.s3[:]
+	new.segm=[lst[:] for lst in self.segm]
+	new._ar=self._ar.copy()
+	return new
 
     def modifys8(self,probs,i,changes8):
-        coils='-TSB'
-        prob=rand()
-        cum=0
-        for j,probj in enumerate(probs):
-          cum+=probj
-          if prob<cum:
-            self.s8[i]=coils[j]
-            changes8.append((i,coils[j]))
-            break
+	coils='-TSB'
+	prob=rand()
+	cum=0
+	for j,probj in enumerate(probs):
+	  cum+=probj
+	  if prob<cum:
+	    self.s8[i]=coils[j]
+	    changes8.append((i,coils[j]))
+	    break
 
     def remedy_disallowed(self,validate=False,stoch={('H',1):(0.6,0.4),('H',2):(0.1,0.9),('S',1):(0.6,0.4),('G',3):(0.0,1.0)},
 subs={('H',1):(0.3,0.45,0.2,0.05),('H',2):(0.2,0.65,0.1,0.05),('S',1):(0.4,0.15,0.2,0.25)}):
-        changes3=[]
-        changes8=[]
-        if debug:print(self)
-        if debug:print(''.join(self.s8))
-        if debug:print(''.join(self.s3))
-        while True:
-          if debug:print(''.join(self.s3))
-          dis=self.return_disallowed()
-          if dis==None:
-            if debug:print('sequence allowed...')
-            break
-          ##print dis
-          ss,i,sl=dis
-          if ss in 'HS':
-            pdel,pext=stoch[(ss,sl)]
-            prob=rand()
-            if prob<pdel:
-              if debug:print('remedying by delete',ss,i,sl)
-              self.delete_segment(i,ss,'C')
-              for k in range(sl):
-                changes3.append((i+k,'C'))
-                self.modifys8(subs[(ss,sl)],i+k,changes8)
-            else:
-              if i==0:ssp=None
-              else:ssp=self.s3[i-1]
-              try:sss=self.s3[i+sl]
-              except IndexError:
-                sss=None
-                ##print 'note: extending from end',dis
-              if ssp=='C' and sss!='C':
-                delta=-1
-              elif sss=='C' and ssp!='C':
-                delta=1
-              elif sss==None:delta=-1
-              elif i==0:delta=1
-              elif ssp==None:delta=1
-              else:
-                delta=1-2*int(rand()*2) #random direction: 1 or -1
-              if debug:print('remedying by increment',ss,i,delta,ssp,sss)
-              self.increment_segment(i,ss,delta)
-              s8id={'H':'H','S':'E'}[ss]
-              if delta<0:
-                self.s8[i+delta]=s8id
-                changes8.append((i+delta,s8id))
-              else:
-                self.s8[i+delta+sl-1]=s8id
-                changes8.append((i+delta+sl-1,s8id))
-          elif ss=='G':
-            if debug:print('remedying by introducing G-helix',i)
-            for k in range(3):
-                self.s8[i+k]='G'
-                changes8.append((i+k,'G'))
-          elif ss=='g':
-            if debug:print('remedying too short G-helix probably within H-helix replacing with H',i)
-            for k in range(sl):
-                self.s8[i+k]='H'
-                changes8.append((i+k,'H'))
-          if validate:self._validate_defs()
-        if debug:print(''.join(self.s8))
-        if validate:self._validate_defs()
-        return changes3,changes8
+	changes3=[]
+	changes8=[]
+	if debug:print self
+	if debug:print ''.join(self.s8)
+	if debug:print ''.join(self.s3)
+	while True:
+	  if debug:print ''.join(self.s3)
+	  dis=self.return_disallowed()
+	  if dis==None:
+	    if debug:print 'sequence allowed...'
+	    break
+	  ##print dis
+	  ss,i,sl=dis
+	  if ss in 'HS':
+	    pdel,pext=stoch[(ss,sl)]
+	    prob=rand()
+	    if prob<pdel:
+	      if debug:print 'remedying by delete',ss,i,sl
+	      self.delete_segment(i,ss,'C')
+	      for k in range(sl):
+		changes3.append((i+k,'C'))
+		self.modifys8(subs[(ss,sl)],i+k,changes8)
+	    else:
+	      if i==0:ssp=None
+	      else:ssp=self.s3[i-1]
+	      try:sss=self.s3[i+sl]
+	      except IndexError:
+		sss=None
+		##print 'note: extending from end',dis
+	      if ssp=='C' and sss!='C':
+		delta=-1
+	      elif sss=='C' and ssp!='C':
+		delta=1
+	      elif sss==None:delta=-1
+	      elif i==0:delta=1
+	      elif ssp==None:delta=1
+	      else:
+		delta=1-2*int(rand()*2) #random direction: 1 or -1
+	      if debug:print 'remedying by increment',ss,i,delta,ssp,sss
+	      self.increment_segment(i,ss,delta)
+	      s8id={'H':'H','S':'E'}[ss]
+	      if delta<0:
+	        self.s8[i+delta]=s8id
+	        changes8.append((i+delta,s8id))
+	      else:
+	        self.s8[i+delta+sl-1]=s8id
+	        changes8.append((i+delta+sl-1,s8id))
+	  elif ss=='G':
+	    if debug:print 'remedying by introducing G-helix',i
+	    for k in range(3):
+		self.s8[i+k]='G'
+		changes8.append((i+k,'G'))
+	  elif ss=='g':
+	    if debug:print 'remedying too short G-helix probably within H-helix replacing with H',i
+	    for k in range(sl):
+		self.s8[i+k]='H'
+		changes8.append((i+k,'H'))
+	  if validate:self._validate_defs()
+	if debug:print ''.join(self.s8)
+	if validate:self._validate_defs()
+	return changes3,changes8
 
     def _validate_defs(self):
-           s30=''.join(self.s3)
-           ##print s30
-           s3d=self.get_s3_from_dict()
-           s3s=self.get_s3_from_segm()
-           s3a=self.get_s3_from_ar()
-           conv8to3={'G':'H', 'H':'H', 'I':'H', 'E':'S', 'B':'C','T':'C', 'S':'C', '-':'C','U':'U'}
-           s3from8=''.join([conv8to3[x] for x in self.s8])
-           ##iden=s30==s3d==s3s==s3a
-           iden=s30==s3d==s3s==s3a==s3from8
-           if not iden:
-                print('warning: not identical')
-                print(s30);print(s3d);print(s3s);print(s3a);print(s3from8)
+	   s30=''.join(self.s3)
+	   ##print s30
+	   s3d=self.get_s3_from_dict()
+	   s3s=self.get_s3_from_segm()
+	   s3a=self.get_s3_from_ar()
+	   conv8to3={'G':'H', 'H':'H', 'I':'H', 'E':'S', 'B':'C','T':'C', 'S':'C', '-':'C','U':'U'}
+	   s3from8=''.join([conv8to3[x] for x in self.s8])
+	   ##iden=s30==s3d==s3s==s3a
+	   iden=s30==s3d==s3s==s3a==s3from8
+	   if not iden:
+		print 'warning: not identical'
+		print s30;print s3d;print s3s;print s3a;print s3from8
 
     def delete_segment(self,i,ss,target):
-        #assert ss in 'HS' and target=='C'
-        si=self._ar[i]
-        s0c,i0c=self.segm[si]#center segment
-        sl=self[s0c][i0c]
-        for k in range(sl):self.s3[i+k]=target
-        if debug:
-          print('delete:',ss,i,sl,si,target,s0c,i0c)
-          print('delete:',self.segm[si-1:si+2])
-        s0p=None;s0s='none'
-        if si>0:
-          s0p,i0p=self.segm[si-1]#preceding  segment
-          slp=self[s0p][i0p]
-        if len(self.segm)>si+1:
-          s0s,i0s=self.segm[si+1]#subsequent segment
-          try:sls=self[s0s][i0s]
-          except KeyError:
-            print('this is crashing!!...')
-            print(''.join(self.s8))
-            print(''.join(self.s3))
-          sls=self[s0s][i0s]
-        ##print ss,i,sl,s0p,i0p,slp,s0s,i0s,sls,self.segm[si-1:si+2]
-        if s0p==s0s:
-          if debug:print('both are coil probably',s0p,s0s)
-          if s0p!=target:
-            if debug:print('Warning: sandwiched between non-targets (calling modify and incr)',s0p,target)
-            if debug:print(''.join(self.s8))
-            if debug:print(''.join(self.s3))
-            self.modify_segment(i,ss,target)
-            for k in range(sl-1):self.increment_segment(i,target,1)
-          else:
-            if debug:print('preceding segment equals target',s0p,target,s0s)
-            self[ss].pop(i)
-            self.segm.pop(si)
-            self.segm.pop(si)#2nd pop -> two deleted
-            self[s0s].pop(i0s)
-            self[s0p][i0p]+=(sl+sls)
-            self._ar[i:i+sl]-=1
-            self._ar[i+sl:]-=2
-            if debug:print('result delete:',self.segm)
-        elif s0p==target:##'C':
-          self[ss].pop(i)
-          self.segm.pop(si)
-          if debug:print('preceding coil segment extended right',i0p,sl)
-          self[s0p][i0p]+=sl
-          self._ar[i:]-=1
-        elif s0s==target:##'C':
-          self[ss].pop(i)
-          self.segm.pop(si)
-          if debug:print('subsequent segment extended left and given new start index',i,sls,sl,s0s,i0s)
-          self[s0s].pop(i0s)#i0s==i+sl
-          self[s0s][i]=sls+sl
-          self.segm[si][1]-=sl # after first pop si is now for subsequent segment!
-          #was: self._ar[i+1:]-=1
-          self._ar[i+sl:]-=1
-        else:
-          if debug:print('nothing special',s0p,s0s,target,sl)#below OK???
-          self[ss].pop(i)
-          self[target][i]=sl
-          self.segm[si][0]=target
+	#assert ss in 'HS' and target=='C'
+	si=self._ar[i]
+	s0c,i0c=self.segm[si]#center segment
+	sl=self[s0c][i0c]
+	for k in range(sl):self.s3[i+k]=target
+	if debug:
+	  print 'delete:',ss,i,sl,si,target,s0c,i0c
+	  print 'delete:',self.segm[si-1:si+2]
+	s0p=None;s0s='none'
+	if si>0:
+	  s0p,i0p=self.segm[si-1]#preceding  segment
+	  slp=self[s0p][i0p]
+	if len(self.segm)>si+1:
+	  s0s,i0s=self.segm[si+1]#subsequent segment
+	  try:sls=self[s0s][i0s]
+	  except KeyError:
+	    print 'this is crashing!!...'
+	    print ''.join(self.s8)
+	    print ''.join(self.s3)
+	  sls=self[s0s][i0s]
+	##print ss,i,sl,s0p,i0p,slp,s0s,i0s,sls,self.segm[si-1:si+2]
+	if s0p==s0s:
+	  if debug:print 'both are coil probably',s0p,s0s
+	  if s0p!=target:
+	    if debug:print 'Warning: sandwiched between non-targets (calling modify and incr)',s0p,target
+	    if debug:print ''.join(self.s8)
+	    if debug:print ''.join(self.s3)
+	    self.modify_segment(i,ss,target)
+	    for k in range(sl-1):self.increment_segment(i,target,1)
+	  else:
+	    if debug:print 'preceding segment equals target',s0p,target,s0s
+	    self[ss].pop(i)
+	    self.segm.pop(si)
+	    self.segm.pop(si)#2nd pop -> two deleted
+	    self[s0s].pop(i0s)
+	    self[s0p][i0p]+=(sl+sls)
+	    self._ar[i:i+sl]-=1
+	    self._ar[i+sl:]-=2
+	    if debug:print 'result delete:',self.segm
+	elif s0p==target:##'C':
+	  self[ss].pop(i)
+	  self.segm.pop(si)
+	  if debug:print 'preceding coil segment extended right',i0p,sl
+	  self[s0p][i0p]+=sl
+	  self._ar[i:]-=1
+	elif s0s==target:##'C':
+	  self[ss].pop(i)
+	  self.segm.pop(si)
+	  if debug:print 'subsequent segment extended left and given new start index',i,sls,sl,s0s,i0s
+	  self[s0s].pop(i0s)#i0s==i+sl
+	  self[s0s][i]=sls+sl
+	  self.segm[si][1]-=sl # after first pop si is now for subsequent segment!
+	  #was: self._ar[i+1:]-=1
+	  self._ar[i+sl:]-=1
+	else:
+	  if debug:print 'nothing special',s0p,s0s,target,sl#below OK???
+	  self[ss].pop(i)
+	  self[target][i]=sl
+	  self.segm[si][0]=target
 
 
     def decrement_segment_end(self,i,ss,si):
-        self.s3[-1]='C'
-        self[ss][i]-=1
-        end=len(self._ar)-1
-        self['C'][end]=1
-        self.segm.append(['C',end])
-        self._ar[-1]+=1
+	self.s3[-1]='C'
+	self[ss][i]-=1
+	end=len(self._ar)-1
+	self['C'][end]=1
+	self.segm.append(['C',end])
+	self._ar[-1]+=1
 
     def decrement_segment_start(self,i,ss):
-        self.s3[0]='C'
-        sl=self[ss].pop(0)
-        self[ss][i+1]=sl-1
-        self['C'][0]=1
-        self.segm.insert(0,['C',0])
-        self.segm[1][1]=1#added newly
-        self._ar[1:]+=1
+	self.s3[0]='C'
+	sl=self[ss].pop(0)
+	self[ss][i+1]=sl-1
+	self['C'][0]=1
+	self.segm.insert(0,['C',0])
+	self.segm[1][1]=1#added newly
+	self._ar[1:]+=1
 
     def decrement_segment(self,i,ss,delta):
-        si=self._ar[i]
-        s0c,i0c=self.segm[si]#center segment
-        if delta<0:
-         if si>0:
-          s0p,i0p=self.segm[si-1]#preceding  segment
-          self.increment_segment(i0p,s0p,-delta)
-         else:
-          if debug:print('changing start...',i,ss,si,delta)
-          self.decrement_segment_start(i,s0c)
-        elif delta>0:
-         if len(self.segm)>si+1:
-          s0s,i0s=self.segm[si+1]#subsequent segment
-          self.increment_segment(i0s,s0s,-delta)
-         else:
-          if debug:print('changing end...',i,ss,si,delta)
-          self.decrement_segment_end(i,s0c,si)
+	si=self._ar[i]
+	s0c,i0c=self.segm[si]#center segment
+	if delta<0:
+	 if si>0:
+	  s0p,i0p=self.segm[si-1]#preceding  segment
+	  self.increment_segment(i0p,s0p,-delta)
+	 else:
+	  if debug:print 'changing start...',i,ss,si,delta
+	  self.decrement_segment_start(i,s0c)
+	elif delta>0:
+	 if len(self.segm)>si+1:
+	  s0s,i0s=self.segm[si+1]#subsequent segment
+	  self.increment_segment(i0s,s0s,-delta)
+	 else:
+	  if debug:print 'changing end...',i,ss,si,delta
+	  self.decrement_segment_end(i,s0c,si)
 
     def increment_segment(self,i,ss,delta):
-        ##sl=self[ss][i]
-        si=self._ar[i]
-        s0c,i0c=self.segm[si]#center segment
-        sl=self[s0c][i0c]
-        if debug:print('increment:',ss,i,sl,si)
-        if debug:print('increment:',self.segm[si-1:si+2])
-        #NOTE: if abs(delta)>1:increment can exceed one more segment and this is not implemented
-        if delta>0:
-          s0s,i0s=self.segm[si+1]#subsequent segment
-          sls=self[s0s][i0s]
-          if debug:print('incrementing to right',i,delta,ss,self.segm[si+1])
-          if sls<=delta:
-            if debug:print('increment exceeds right segment',sls,delta,self.segm[si+1])
-            self.delete_segment(i0s,s0s,s0c)
-          else:
-            self.s3[i0s:i0s+delta]=ss#change to target
-            self[ss][i0c]+=delta #extend center segment length
-            self[s0s].pop(i0s)
-            self[s0s][i0s+delta]=sls-delta #decrease subs segm len and move to right
-            self.segm[si+1][1]+=delta
-            self._ar[i0s:i0s+delta]-=1
-        elif delta<0:
-          s0p,i0p=self.segm[si-1]#preceding segment
-          slp=self[s0p][i0p]
-          if debug:print('incrementing to left',i,delta,ss,self.segm[si-1])
-          if slp<=abs(delta):
-            if debug:print('increment exceeds left segment',slp,delta,self.segm[si-1])
-            self.delete_segment(i0p,s0p,s0c)
-          else:
-            self.s3[i0c+delta:i0c]=ss#change to target
-            self[ss].pop(i0c)
-            self[ss][i0c+delta]=sl-delta #extend center segment length (delta<0) and move to left
-            self[s0p][i0p]=slp+delta #decrease prev segm len
-            self.segm[si][1]+=delta
-            self._ar[i0c+delta:i0c]+=1
+	##sl=self[ss][i]
+	si=self._ar[i]
+	s0c,i0c=self.segm[si]#center segment
+	sl=self[s0c][i0c]
+	if debug:print 'increment:',ss,i,sl,si
+	if debug:print 'increment:',self.segm[si-1:si+2]
+	#NOTE: if abs(delta)>1:increment can exceed one more segment and this is not implemented
+	if delta>0:
+	  s0s,i0s=self.segm[si+1]#subsequent segment
+	  sls=self[s0s][i0s]
+	  if debug:print 'incrementing to right',i,delta,ss,self.segm[si+1]
+	  if sls<=delta:
+	    if debug:print 'increment exceeds right segment',sls,delta,self.segm[si+1]
+	    self.delete_segment(i0s,s0s,s0c)
+	  else:
+	    self.s3[i0s:i0s+delta]=ss#change to target
+	    self[ss][i0c]+=delta #extend center segment length
+	    self[s0s].pop(i0s)
+	    self[s0s][i0s+delta]=sls-delta #decrease subs segm len and move to right
+	    self.segm[si+1][1]+=delta
+	    self._ar[i0s:i0s+delta]-=1
+	elif delta<0:
+	  s0p,i0p=self.segm[si-1]#preceding segment
+	  slp=self[s0p][i0p]
+	  if debug:print 'incrementing to left',i,delta,ss,self.segm[si-1]
+	  if slp<=abs(delta):
+	    if debug:print 'increment exceeds left segment',slp,delta,self.segm[si-1]
+	    self.delete_segment(i0p,s0p,s0c)
+	  else:
+	    self.s3[i0c+delta:i0c]=ss#change to target
+	    self[ss].pop(i0c)
+	    self[ss][i0c+delta]=sl-delta #extend center segment length (delta<0) and move to left
+	    self[s0p][i0p]=slp+delta #decrease prev segm len
+	    self.segm[si][1]+=delta
+	    self._ar[i0c+delta:i0c]+=1
 
     def modify_segment(self,i,ss,target):##,delta):
-        si=self._ar[i]
-        s0c,i0c=self.segm[si]#center segment
-        sl=self[s0c][i0c]
-        self.s3[i]=target#easy!
-        if debug:print('modify:',ss,i,sl,si)
-        if i0c<i<i0c+sl-1:
-          if debug:print('middle of segment modification',i0c,i,i0c+sl,ss,target)
-          self[s0c][i0c]=i-i0c
-          self[target][i]=1
-          self[s0c][i+1]=i0c+sl-i-1
-          self.segm.insert(si+1,[target,i])
-          self.segm.insert(si+2,[s0c,i+1])
-          self._ar[i]+=1
-          self._ar[i+1:]+=2
-          #note that the sum of segment lengths is preserved == sl
-        if i0c==i:
-          #assuming s0p!=target
-          if debug:print('left-side segment modification',i0c,ss,target,s0c,si,sl)
-          ##s0p,i0p=self.segm[si-1]#preceding segment
-          ##if s0p==target:print 'WARNING: prev ss equals target',target
-          self[s0c].pop(i)
-          self[target][i]=1
-          self.segm.insert(si+1,[target,i])
-          if sl>1:#TJEK OK?!....
-            self[s0c][i+1]=sl-1
-            self.segm.insert(si+2,[s0c,i+1])
-            self._ar[i+1:]+=1
-          self.segm.pop(si)
-        ##if i==i0c+sl-1:
-        elif i==i0c+sl-1:
-          if debug:print('right-side segment modification',i,ss,target)
-          ##if s0s==target:print 'WARNING: prev ss equals target',target
-          self[s0c][i0c]=sl-1
-          self[target][i]=1
-          self.segm.insert(si+1,[target,i])
-          self._ar[i]+=1
-          self._ar[i+1:]+=1
-          #note that the sum of segment lengths is preserved == sl
+	si=self._ar[i]
+	s0c,i0c=self.segm[si]#center segment
+	sl=self[s0c][i0c]
+	self.s3[i]=target#easy!
+	if debug:print 'modify:',ss,i,sl,si
+	if i0c<i<i0c+sl-1:
+	  if debug:print 'middle of segment modification',i0c,i,i0c+sl,ss,target
+	  self[s0c][i0c]=i-i0c
+	  self[target][i]=1
+	  self[s0c][i+1]=i0c+sl-i-1
+	  self.segm.insert(si+1,[target,i])
+	  self.segm.insert(si+2,[s0c,i+1])
+	  self._ar[i]+=1
+	  self._ar[i+1:]+=2
+	  #note that the sum of segment lengths is preserved == sl
+	if i0c==i:
+	  #assuming s0p!=target
+	  if debug:print 'left-side segment modification',i0c,ss,target,s0c,si,sl
+	  ##s0p,i0p=self.segm[si-1]#preceding segment
+	  ##if s0p==target:print 'WARNING: prev ss equals target',target
+	  self[s0c].pop(i)
+	  self[target][i]=1
+	  self.segm.insert(si+1,[target,i])
+	  if sl>1:#TJEK OK?!....
+	    self[s0c][i+1]=sl-1
+	    self.segm.insert(si+2,[s0c,i+1])
+	    self._ar[i+1:]+=1
+	  self.segm.pop(si)
+	##if i==i0c+sl-1:
+	elif i==i0c+sl-1:
+	  if debug:print 'right-side segment modification',i,ss,target
+	  ##if s0s==target:print 'WARNING: prev ss equals target',target
+	  self[s0c][i0c]=sl-1
+	  self[target][i]=1
+	  self.segm.insert(si+1,[target,i])
+	  self._ar[i]+=1
+	  self._ar[i+1:]+=1
+	  #note that the sum of segment lengths is preserved == sl
 
     def choose_coil_point(self):
-        coils=list(self['C'].items())
-        if len(coils)==0:return None,None
-        n=randint(0,len(coils)-1)
-        i0,sl=coils[n]
-        j=randint(0,sl-1)
-        i=i0+j
-        s8i=self.s8[i]
-        coilvals='-TSB'
-        s8val=s8i
-        probs=(0.4,0.2,0.3,0.1)
-        if (i>0 and self.s8[i-1]=='E' or i<len(self.s8)-1 and self.s8[i+1]=='E'):
-          probs=(0.4,0.3,0.3)#bridge should not extend strand?...
-        while s8val==s8i:
-          ind=selector(probs)
-          s8val=coilvals[ind]
-        return i,s8val
+	coils=self['C'].items()
+	if len(coils)==0:return None,None
+	n=randint(0,len(coils)-1)
+	i0,sl=coils[n]
+	j=randint(0,sl-1)
+	i=i0+j
+	s8i=self.s8[i]
+	coilvals='-TSB'
+	s8val=s8i
+	probs=(0.4,0.2,0.3,0.1)
+	if (i>0 and self.s8[i-1]=='E' or i<len(self.s8)-1 and self.s8[i+1]=='E'):
+	  probs=(0.4,0.3,0.3)#bridge should not extend strand?...
+	while s8val==s8i:
+	  ind=selector(probs)
+	  s8val=coilvals[ind]
+	return i,s8val
 
     def choose_incr_point(self):
-        hs=list(self['H'].items())
-        es=list(self['S'].items())
-        if len(hs)==0 and len(es)==0:return None,None,None
-        if len(hs)==0 and len(es)>0:ssm='S'
-        elif len(hs)>0 and len(es)==0:ssm='H'
-        else:ssm=randchoice('HS')
-        elems=list(self[ssm].items())
-        n=randint(0,len(elems)-1)
-        i0,sl=elems[n]
-        if i0==0:direc='R'
-        elif int(self._ar[i0])==len(self.segm)-1:direc='L'
-        else:direc=randchoice('LR')
-        if direc=='R':
-          i=i0+sl
-          refi=i0+sl-1
-        else:
-          i=i0-1
-          refi=i0
-        d3to8={'H':'H','S':'E'}
-        ##return i,d3to8[ssm],direc
-        return i,self.s8[refi],(i0,ssm,direc)
+	hs=self['H'].items()
+	es=self['S'].items()
+	if len(hs)==0 and len(es)==0:return None,None,None
+	if len(hs)==0 and len(es)>0:ssm='S'
+	elif len(hs)>0 and len(es)==0:ssm='H'
+	else:ssm=randchoice('HS')
+	elems=self[ssm].items()
+	n=randint(0,len(elems)-1)
+	i0,sl=elems[n]
+	if i0==0:direc='R'
+	elif int(self._ar[i0])==len(self.segm)-1:direc='L'
+	else:direc=randchoice('LR')
+	if direc=='R':
+	  i=i0+sl
+	  refi=i0+sl-1
+	else:
+	  i=i0-1
+	  refi=i0
+	d3to8={'H':'H','S':'E'}
+	##return i,d3to8[ssm],direc
+	return i,self.s8[refi],(i0,ssm,direc)
 
     def choose_delete_elem(self):
-        hs=list(self['H'].items())
-        es=list(self['S'].items())
-        if len(hs)==0 and len(es)==0:return None,None,None
-        if len(hs)==0 and len(es)>0:ssm='S'
-        elif len(hs)>0 and len(es)==0:ssm='H'
-        else:ssm=randchoice('HS')
-        elems=list(self[ssm].items())
-        minelem=min(elems,key=lambda x:x[1])
-        minsl={'S':2,'H':4}#temporarily allow 3-long alpha-helix
-        if minelem[1]>minsl[ssm]+2:return None,None,None #unlikely to benefit from delete...
-        i0,sl=minelem
-        coils='-TSB'
-        subs={'H':(0.5,0.27,0.2,0.03),'S':(0.5,0.15,0.2,0.15)}
-        target=''
-        for _ in range(sl):
-          ind=selector(subs[ssm])
-          target+=coils[ind]
-        return i0,target,ssm
+	hs=self['H'].items()
+	es=self['S'].items()
+	if len(hs)==0 and len(es)==0:return None,None,None
+	if len(hs)==0 and len(es)>0:ssm='S'
+	elif len(hs)>0 and len(es)==0:ssm='H'
+	else:ssm=randchoice('HS')
+	elems=self[ssm].items()
+	minelem=min(elems,key=lambda x:x[1])
+	minsl={'S':2,'H':4}#temporarily allow 3-long alpha-helix
+	if minelem[1]>minsl[ssm]+2:return None,None,None #unlikely to benefit from delete...
+	i0,sl=minelem
+	coils='-TSB'
+	subs={'H':(0.5,0.27,0.2,0.03),'S':(0.5,0.15,0.2,0.15)}
+	target=''
+	for _ in range(sl):
+	  ind=selector(subs[ssm])
+	  target+=coils[ind]
+	return i0,target,ssm
 
     def choose_decr_point(self,allowsmall=False):
-        hs=list(self['H'].items())
-        es=list(self['S'].items())
-        if len(hs)==0 and len(es)==0:return None,None,None
-        if len(hs)==0 and len(es)>0:ssm='S'
-        elif len(hs)>0 and len(es)==0:ssm='H'
-        else:ssm=randchoice('HS')
-        elems=list(self[ssm].items())
-        maxelem=max(elems,key=lambda x:x[1])
-        minsl={'S':2,'H':4}#temporarily allow 3-long alpha-helix
-        if maxelem[1]<minsl[ssm] and not allowsmall:return None,None,None
-        sl=0
-        while sl<minsl[ssm]:
-          n=randint(0,len(elems)-1)
-          i0,sl=elems[n]
-          if allowsmall:break
-        direc=randchoice('LR')
-        if direc=='R':
-          i=i0+sl-1
-          bi=i+1
-        else:
-          i=i0
-          bi=i-1
-        d3to8={'H':'H','S':'E'}
-        if bi<0 or bi==len(self.s3):bases3='C'
-        else:bases3=self.s3[bi]
-        if bases3=='C':
-          coils='-TSB'
-          subs={'H':(0.5,0.27,0.2,0.03),'S':(0.65,0.15,0.2,0.0)}
-          ind=selector(subs[ssm])
-          targets8=coils[ind]
-        else:
-          targets8=d3to8[bases3]
-        if debug:print('bases3',i,bi,bases3,targets8)
-        return i,targets8,(i0,ssm,direc)
+	hs=self['H'].items()
+	es=self['S'].items()
+	if len(hs)==0 and len(es)==0:return None,None,None
+	if len(hs)==0 and len(es)>0:ssm='S'
+	elif len(hs)>0 and len(es)==0:ssm='H'
+	else:ssm=randchoice('HS')
+	elems=self[ssm].items()
+	maxelem=max(elems,key=lambda x:x[1])
+	minsl={'S':2,'H':4}#temporarily allow 3-long alpha-helix
+	if maxelem[1]<minsl[ssm] and not allowsmall:return None,None,None
+	sl=0
+	while sl<minsl[ssm]:
+	  n=randint(0,len(elems)-1)
+	  i0,sl=elems[n]
+	  if allowsmall:break
+	direc=randchoice('LR')
+	if direc=='R':
+	  i=i0+sl-1
+	  bi=i+1
+	else:
+	  i=i0
+	  bi=i-1
+	d3to8={'H':'H','S':'E'}
+	if bi<0 or bi==len(self.s3):bases3='C'
+	else:bases3=self.s3[bi]
+	if bases3=='C':
+	  coils='-TSB'
+	  subs={'H':(0.5,0.27,0.2,0.03),'S':(0.65,0.15,0.2,0.0)}
+	  ind=selector(subs[ssm])
+	  targets8=coils[ind]
+	else:
+	  targets8=d3to8[bases3]
+	if debug:print 'bases3',i,bi,bases3,targets8
+	return i,targets8,(i0,ssm,direc)
 
     def choose_split_point(self):
-        hs=list(self['H'].items())
-        es=list(self['S'].items())
-        minsl={'S':2,'H':3}
-        if len(hs)==0 and len(es)==0:return None,None,None
-        if len(hs)==0 and len(es)>0:ssm='S'
-        elif len(hs)>0 and len(es)==0:ssm='H'
-        else:
-          smaxls=max([elem[1]-minsl['S']*2 for elem in list(self['S'].items())])
-          hmaxls=max([elem[1]-minsl['H']*2 for elem in list(self['H'].items())])
-          if smaxls<1 and hmaxls<1:return None,None,None
-          elif smaxls>0 and hmaxls<1:
-            ssm='S'
-          elif hmaxls>0 and smaxls<1:
-            ssm='H'
-          else:
-            ssm=randchoice('HS')
-        elems=list(self[ssm].items())
-        maxls=max([elem[1]-minsl[ssm]*2 for elem in elems])
-        if maxls<1:return None,None,None
-        sl=0
-        while sl<minsl[ssm]*2+1:
-          n=randint(0,len(elems)-1)
-          i0,sl=elems[n]
-          ##if allowsmall:break
-        j=randint(minsl[ssm],sl-minsl[ssm]-1)
-        i=i0+j
-        coils='-TSB'
-        subs={'H':(0.27,0.5,0.2,0.03),'S':(0.65,0.15,0.2,0.0)}
-        ind=selector(subs[ssm])
-        return i,coils[ind],ssm
+	hs=self['H'].items()
+	es=self['S'].items()
+	minsl={'S':2,'H':3}
+	if len(hs)==0 and len(es)==0:return None,None,None
+	if len(hs)==0 and len(es)>0:ssm='S'
+	elif len(hs)>0 and len(es)==0:ssm='H'
+	else:
+	  smaxls=max([elem[1]-minsl['S']*2 for elem in self['S'].items()])
+	  hmaxls=max([elem[1]-minsl['H']*2 for elem in self['H'].items()])
+	  if smaxls<1 and hmaxls<1:return None,None,None
+	  elif smaxls>0 and hmaxls<1:
+	    ssm='S'
+	  elif hmaxls>0 and smaxls<1:
+	    ssm='H'
+	  else:
+	    ssm=randchoice('HS')
+	elems=self[ssm].items()
+	maxls=max([elem[1]-minsl[ssm]*2 for elem in elems])
+	if maxls<1:return None,None,None
+	sl=0
+	while sl<minsl[ssm]*2+1:
+	  n=randint(0,len(elems)-1)
+	  i0,sl=elems[n]
+	  ##if allowsmall:break
+	j=randint(minsl[ssm],sl-minsl[ssm]-1)
+	i=i0+j
+	coils='-TSB'
+	subs={'H':(0.27,0.5,0.2,0.03),'S':(0.65,0.15,0.2,0.0)}
+	ind=selector(subs[ssm])
+	return i,coils[ind],ssm
 
     def choose_overwriteH2G(self):
-        hs=list(self['H'].items())
-        if len(hs)==0:return None,None,None
-        elems=list(self['H'].items())
-        minls=min([elem[1] for elem in elems])
-        if minls>4:
-          n=randint(0,len(elems)-1)
-          i0,sl=elems[n]
-          direc=randchoice('LR')
-          if direc=='L':
-            i=i0
-            gsl=[3,min(sl,4),min(sl,5)][selector((0.6,0.3,0.1))]
-            if not 'H' in self.s8[i:i+sl]:return None,None,None
-          else:
-            ##i=i0+sl-1
-            gsl=[3,min(sl,4),min(sl,5)][selector((0.6,0.3,0.1))]
-            ##if not 'H' in self.s8[i-sl+1:i+1]:return None,None,None
-            if not 'H' in self.s8[i0+sl-gsl:i0+sl]:return None,None,None
-            i=i0+sl-gsl
-        else:
-          direc='a'
-          gsl=999
-          while gsl>4:
-            n=randint(0,len(elems)-1)
-            i,gsl=elems[n]
-          if not 'H' in self.s8[i:i+gsl]:return None,None,None
-        return i,'G'*gsl,(gsl,direc)
+	hs=self['H'].items()
+	if len(hs)==0:return None,None,None
+	elems=self['H'].items()
+	minls=min([elem[1] for elem in elems])
+	if minls>4:
+	  n=randint(0,len(elems)-1)
+	  i0,sl=elems[n]
+	  direc=randchoice('LR')
+	  if direc=='L':
+	    i=i0
+	    gsl=[3,min(sl,4),min(sl,5)][selector((0.6,0.3,0.1))]
+	    if not 'H' in self.s8[i:i+sl]:return None,None,None
+	  else:
+	    ##i=i0+sl-1
+	    gsl=[3,min(sl,4),min(sl,5)][selector((0.6,0.3,0.1))]
+	    ##if not 'H' in self.s8[i-sl+1:i+1]:return None,None,None
+	    if not 'H' in self.s8[i0+sl-gsl:i0+sl]:return None,None,None
+	    i=i0+sl-gsl
+	else:
+	  direc='a'
+	  gsl=999
+	  while gsl>4:
+	    n=randint(0,len(elems)-1)
+	    i,gsl=elems[n]
+	  if not 'H' in self.s8[i:i+gsl]:return None,None,None
+	return i,'G'*gsl,(gsl,direc)
 
     def choose_overwriteC2G(self):
-        cs=list(self['C'].items())
-        if len(cs)==0:return None,None,None
-        elems=list(self['C'].items())
-        minls=min([elem[1] for elem in elems])
-        if minls<3:return None,None,None
-        sl=0
-        while sl<3:
-          n=randint(0,len(elems)-1)
-          i0,sl=elems[n]
-        j=randint(0,sl-3)
-        i=i0+j
-        #NOTE: what if new GGG edges old helix?... -> extend
-        return i,'G'*3,sl
+	cs=self['C'].items()
+	if len(cs)==0:return None,None,None
+	elems=self['C'].items()
+	minls=min([elem[1] for elem in elems])
+	if minls<3:return None,None,None
+	sl=0
+	while sl<3:
+	  n=randint(0,len(elems)-1)
+	  i0,sl=elems[n]
+	j=randint(0,sl-3)
+	i=i0+j
+	#NOTE: what if new GGG edges old helix?... -> extend
+	return i,'G'*3,sl
 
     def get_s8_mutation(self,flag,ind,i,ss8):
-        flags=['coil','incr','decr','split','del','H2G','C2G']
-        s8new=self.s8[:]
-        if flag in ['coil','incr','decr','split']:
-          s8new[i]=ss8
-        else:
-          for k,s8k in enumerate(ss8):s8new[i+k]=s8k
-        return s8new
+	flags=['coil','incr','decr','split','del','H2G','C2G']
+	s8new=self.s8[:]
+	if flag in ['coil','incr','decr','split']:
+	  s8new[i]=ss8
+	else:
+	  for k,s8k in enumerate(ss8):s8new[i+k]=s8k
+	return s8new
 
     def execute_mutation(self,flag,ind,i,ss8,info):
-        flags=['coil','incr','decr','split','del','H2G','C2G']
-        if flag=='coil':
-          self.s8[i]=ss8
-        elif flag=='incr':
+	flags=['coil','incr','decr','split','del','H2G','C2G']
+	if flag=='coil':
+	  self.s8[i]=ss8
+	elif flag=='incr':
           #see choose_incr_point
-          self.s8[i]=ss8
-          i0,ssm,direc=info
-          if direc=='R':delta=1
-          else:delta=-1
-          self.increment_segment(i0,ssm,delta)
-        elif flag=='decr':
+	  self.s8[i]=ss8
+	  i0,ssm,direc=info
+	  if direc=='R':delta=1
+	  else:delta=-1
+	  self.increment_segment(i0,ssm,delta)
+	elif flag=='decr':
           #see choose_decr_point
-          self.s8[i]=ss8
-          i0,ssm,direc=info
-          if direc=='R':delta=1
-          else:delta=-1
-          self.decrement_segment(i0,ssm,delta)
-        elif flag=='split':
+	  self.s8[i]=ss8
+	  i0,ssm,direc=info
+	  if direc=='R':delta=1
+	  else:delta=-1
+	  self.decrement_segment(i0,ssm,delta)
+	elif flag=='split':
           #see choose_split_point
-          self.s8[i]=ss8
-          ssm=info
-          self.modify_segment(i,ssm,'C')
-        elif flag=='del':
+	  self.s8[i]=ss8
+	  ssm=info
+	  self.modify_segment(i,ssm,'C')
+	elif flag=='del':
           #see choose_delete_elem
-          ssm=info
-          for k,s8k in enumerate(ss8):self.s8[i+k]=s8k
-          self.delete_segment(i,ssm,'C')
-        if flag=='H2G':
-          #see choose_overwriteH2G
-          for k,s8k in enumerate(ss8):self.s8[i+k]=s8k
-        if flag=='C2G':
-          #see choose_overwriteC2G
-          for k,s8k in enumerate(ss8):self.s8[i+k]=s8k#always 3-long
-          self.modify_segment(i,'C','H')
-          for k in (1,2): self.increment_segment(i,'H',1)
-        if False:self._validate_defs()#TAKEBACK for debug!!
+	  ssm=info
+	  for k,s8k in enumerate(ss8):self.s8[i+k]=s8k
+	  self.delete_segment(i,ssm,'C')
+	if flag=='H2G':
+	  #see choose_overwriteH2G
+	  for k,s8k in enumerate(ss8):self.s8[i+k]=s8k
+	if flag=='C2G':
+	  #see choose_overwriteC2G
+	  for k,s8k in enumerate(ss8):self.s8[i+k]=s8k#always 3-long
+	  self.modify_segment(i,'C','H')
+	  for k in (1,2): self.increment_segment(i,'H',1)
+	if False:self._validate_defs()#TAKEBACK for debug!!
 
     def get_s3_from_dict(self):
-        ds8=array(['u' for _ in range(len(self.s8))],dtype='|S1')
-        for ss in self:
-          for i in self[ss]:
-            sl=self[ss][i]
-            ds8[i:i+sl]=ss
-        return ''.join(ds8)
+	ds8=array(['u' for _ in range(len(self.s8))],dtype='|S1')
+	for ss in self:
+	  for i in self[ss]:
+	    sl=self[ss][i]
+	    ds8[i:i+sl]=ss
+	return ''.join(ds8)
 
     def get_s3_from_segm(self):
-        segm=self.segm
-        ds8=array(['u' for _ in range(len(self.s8))],dtype='|S1')
-        s0s,i0s=segm[0] #just in case segm is length one
-        for si in range(len(segm)-1):
-          s0,i0=segm[si]
-          s0s,i0s=segm[si+1]
-          ds8[i0:i0s]=s0
-        ds8[i0s:]=s0s#fix end
-        return ''.join(ds8)
+	segm=self.segm
+	ds8=array(['u' for _ in range(len(self.s8))],dtype='|S1')
+	s0s,i0s=segm[0] #just in case segm is length one
+	for si in range(len(segm)-1):
+	  s0,i0=segm[si]
+	  s0s,i0s=segm[si+1]
+	  ds8[i0:i0s]=s0
+	ds8[i0s:]=s0s#fix end
+	return ''.join(ds8)
 
     def get_s3_from_ar(self):#but segm is also used once
-        ds8=array(['u' for _ in range(len(self.s8))],dtype='|S1')
-        sip=0;ip=0
-        for i,si in enumerate(self._ar):
-          if si!=sip:
-            ds8[ip:i]=self.segm[sip][0]
-            sip=si;ip=i
-        ds8[ip:]=self.segm[-1][0]
-        return ''.join(ds8)
+	ds8=array(['u' for _ in range(len(self.s8))],dtype='|S1')
+	sip=0;ip=0
+	for i,si in enumerate(self._ar):
+	  if si!=sip:
+	    ds8[ip:i]=self.segm[sip][0]
+	    sip=si;ip=i
+	ds8[ip:]=self.segm[-1][0]
+	return ''.join(ds8)
 
     def return_disallowed(self):
-        for i in self['H']:
-          if self['H'][i]<3:return 'H',i,self['H'][i]#too short helix
-        for i in self['S']:
-          if self['S'][i]<2:return 'S',i,1#too short strand - but might be OK to work with...
-        for i in self['H']:
-           if self['H'][i]<4:
-             for k in range(3):
-                if self.s8[i+k]!='G': return 'G',i,3
-           ##else:
-        for i in self['H']:
-             sl=self['H'][i]
-             segstr=self.s8[i:i+sl]
-             ##print i,sl,segstr
-             ##for m in re.finditer(r"G+", segstr): 
-                ##if m.end()-m.start()<3:return 'g',i+m.start(),m.end()-m.start()
-             if 'G' in segstr:
-                #might be a too short G-segment within Helix
-                gi=segstr.index('G')
-                if gi+1>=sl:         return 'g',i+gi,1
-                if segstr[gi+1]!='G':return 'g',i+gi,1
-                if gi+2>=sl:         return 'g',i+gi,2
-                if segstr[gi+2]!='G':return 'g',i+gi,2
-        return None
+	for i in self['H']:
+	  if self['H'][i]<3:return 'H',i,self['H'][i]#too short helix
+	for i in self['S']:
+	  if self['S'][i]<2:return 'S',i,1#too short strand - but might be OK to work with...
+	for i in self['H']:
+	   if self['H'][i]<4:
+	     for k in range(3):
+		if self.s8[i+k]!='G': return 'G',i,3
+	   ##else:
+	for i in self['H']:
+	     sl=self['H'][i]
+	     segstr=self.s8[i:i+sl]
+	     ##print i,sl,segstr
+	     ##for m in re.finditer(r"G+", segstr): 
+		##if m.end()-m.start()<3:return 'g',i+m.start(),m.end()-m.start()
+	     if 'G' in segstr:
+		#might be a too short G-segment within Helix
+		gi=segstr.index('G')
+		if gi+1>=sl:         return 'g',i+gi,1
+		if segstr[gi+1]<>'G':return 'g',i+gi,1
+		if gi+2>=sl:         return 'g',i+gi,2
+		if segstr[gi+2]<>'G':return 'g',i+gi,2
+	return None
 
     def get_disallowed(self):
-        sshort=[]
-        for i in self['S']:
-          if self['S'][i]<2:sshort.append(i)
-        hshort=[]
-        gonly=[]
-        for i in self['H']:
-          if self['H'][i]<3:hshort.append(i)
-          elif self['H'][i]<4:gonly.append(i)
-        return sshort,hshort,gonly
+	sshort=[]
+	for i in self['S']:
+	  if self['S'][i]<2:sshort.append(i)
+	hshort=[]
+	gonly=[]
+	for i in self['H']:
+	  if self['H'][i]<3:hshort.append(i)
+	  elif self['H'][i]<4:gonly.append(i)
+	return sshort,hshort,gonly
 
     def comparedis(self,other):
-        lab=['beta','helix','gonly']
-        for k in range(3):
-         ss=self.disallowed[k]
-         for i in ss:
-          ss8o=other.s8[i]
-          if debug:print('other short',lab[k],ss8o)
+	lab=['beta','helix','gonly']
+	for k in range(3):
+	 ss=self.disallowed[k]
+	 for i in ss:
+	  ss8o=other.s8[i]
+	  if debug:print 'other short',lab[k],ss8o
 
 def getCSIpreds(ssp,bmrid):
   buf=initfil2('csi3output/bmr%s.out'%bmrid)[1:]
@@ -1806,242 +1806,242 @@ def getCSIpreds(ssp,bmrid):
   sub8={'C':'-','H':'H','E':'E','I':'E','T':'T'}
   s3=[sub3[lin[2]] for lin in buf]
   s8=[sub8[lin[3][0]] for lin in buf]
-  if debug:print('CSI predictions for',bmrid)
-  if debug:print(''.join(s3))
-  if debug:print(''.join(s8))
+  if debug:print 'CSI predictions for',bmrid
+  if debug:print ''.join(s3)
+  if debug:print ''.join(s8)
   return SSopt(ssp,s8,s3)
 
 def get_score(pr,p0):
   if pr>=1.0:
-        score=1+p0/0.4
-        if score>1.1:lab='9'
-        else:lab='8'
+	score=1+p0/0.4
+	if score>1.1:lab='9'
+	else:lab='8'
   else:
     score=pr
     if pr>0.96:lab='7'
     elif pr>0.90:lab='6'
     elif pr<0.60:lab='1'
     else:
-        lab=str(max(0,int(pr*10)-3))
-        ##lab=str(max(0,int(pr*10)-2))
+	lab=str(max(0,int(pr*10)-3))
+	##lab=str(max(0,int(pr*10)-2))
   return score,lab
 
 
 class SOPopulation(Population):
 
     def derive_stats(self,cnt):
-        eners=array([obj.energy for obj in self])
-        ##genestd=self.getspjread()
-        trueprobs,genestd,fracs=self[0].get_class_stats(self)
-        self.trueprobs=trueprobs
-        print('average energy: %9.3f %9.3f %8.4f %8.5f %7.4f %4d %3d'%(average(eners),min(eners),std(eners),trueprobs,genestd,cnt,len(eners)), end=' ')
-        print(self[0].getid())
+	eners=array([obj.energy for obj in self])
+	##genestd=self.getspjread()
+	trueprobs,genestd,fracs=self[0].get_class_stats(self)
+	self.trueprobs=trueprobs
+	print 'average energy: %9.3f %9.3f %8.4f %8.5f %7.4f %4d %3d'%(average(eners),min(eners),std(eners),trueprobs,genestd,cnt,len(eners)),
+	print self[0].getid()
 
     def summarize_as_probs(self,dovis=True):
-        allss8='HGIE-TSB'
-        allss3='HSC'
-        conv8to3={'G':'H', 'H':'H', 'I':'H', 'E':'S', 'B':'C','T':'C', 'S':'C', '-':'C','U':'U'}
-        indss3={'H':[0,1,2],'S':[3],'C':[4,5,6,7]}
-        obj=self[0]
+	allss8='HGIE-TSB'
+	allss3='HSC'
+	conv8to3={'G':'H', 'H':'H', 'I':'H', 'E':'S', 'B':'C','T':'C', 'S':'C', '-':'C','U':'U'}
+	indss3={'H':[0,1,2],'S':[3],'C':[4,5,6,7]}
+	obj=self[0]
         segm8=Segments8(obj.s8)
         visSS8max(segm8,obj.ssp.mini,obj.ssp.maxi)
-        trueprobs,genestd,fracs=obj.get_class_stats(self)
-        probs=fracs##.transpose()
-        ##ANS=avenscorr(obj.ssp.params,fracs.transpose(),len(obj.ssp.seq))#-4)
-        ##ss8priors,post0=guesss8s(obj.ssp.params,obj.ssp.resis,obj.ssp.pcsobsref,fracs.transpose(),obj.ssp.ssigs)
-        ##post=post0/sum(post0,axis=0)
-        ru=list(obj.ssp.ru)
-        allconfdigits='';allconfdigits3='';matches='';outdata=[];alls8maxs='';alls3maxs=''
-        pid=obj.ssp.bmrid
-        outfiles=[open(fname+'_'+pid+'.txt','w') for fname in ['probs8','probs3','max8','max3','short8','short3']]
-        testdata=[]
-        seq=''.join(obj.ssp.seq)
+	trueprobs,genestd,fracs=obj.get_class_stats(self)
+	probs=fracs##.transpose()
+	##ANS=avenscorr(obj.ssp.params,fracs.transpose(),len(obj.ssp.seq))#-4)
+	##ss8priors,post0=guesss8s(obj.ssp.params,obj.ssp.resis,obj.ssp.pcsobsref,fracs.transpose(),obj.ssp.ssigs)
+	##post=post0/sum(post0,axis=0)
+	ru=list(obj.ssp.ru)
+	allconfdigits='';allconfdigits3='';matches='';outdata=[];alls8maxs='';alls3maxs=''
+	pid=obj.ssp.bmrid
+	outfiles=[open(fname+'_'+pid+'.txt','w') for fname in ['probs8','probs3','max8','max3','short8','short3']]
+	testdata=[]
+	seq=''.join(obj.ssp.seq)
         if dovis:
-          visprobs3(fracs.transpose(),mini=obj.ssp.mini,maxi=obj.ssp.maxi)
-          ##xticks(range(obj.ssp.mini,obj.ssp.maxi+1),obj.ssp.seq) #labels will overlap :(
-          ##visprobs(post)
-          ##show();1/0
-        ##tr8,tr3=obj.evaluate('byres')
-        dotest=obj.ssp.dotest
-        if dotest:
-          os8=obj.ssp.s8obs##[:-4]
-          os3=obj.ssp.s3obs
-        ##pot=post.transpose()
-        for i in range(len(probs)):
-          for n in range(4):
-            ##outfiles[n].write('%3d'%(i+1))
-            outfiles[n].write(' %3s %3d'%(obj.ssp.seq[i],i+1))
-          pri=probs[i]
-          outfiles[0].write(' %6.4f %6.4f %6.4f %6.4f %6.4f %6.4f %6.4f %6.4f\n'%tuple(pri))
-          pri3=[sum([pri[j] for j in indss3[k]]) for k in 'HSC']
-          outfiles[1].write(' %6.4f %6.4f %6.4f\n'%tuple(pri3))
-          if i in ru:
-            ##pti=pot[ru.index(i)]
-            p0i=obj.post0ref[ru.index(i)]
-          else:
-            ##pti=[-9]*8
-            p0i=0.000
-          mip=pri.argmax()
-          mip3=array(pri3).argmax()
-          s8maxave=allss8[mip]
-          s3maxave=allss3[mip3]
-          s8max=obj.s8[i]
-          s3max=obj.s3[i]
-          alls8maxs+=s8max
-          alls3maxs+=s3max
-          ##s3max=conv8to3[s8max]
-          entr=shannon(pri)
-          score,confdigit=get_score(pri[mip],p0i)
-          score3,confdigit3=get_score(pri3[mip3],p0i)
-          allconfdigits+=confdigit
-          allconfdigits3+=confdigit3
-          vals=(i+1,s8max,pri[mip],exp(entr),p0i,score,confdigit)
-          vals3=(i+1,s3max,pri3[mip3],exp(entr),p0i,score3,confdigit3)
-          outfiles[2].write(' %s %6.4f %6.4f\n'%(s8max,pri[mip],p0i))
-          outfiles[3].write(' %s %6.4f %6.4f\n'%(s3max,pri3[mip3],p0i))
-          if dotest:
-            iden8=os8[i]==s8max
-            iden3=os3[i]==s3max
-            if iden8:matches+='|'
-            elif iden3:matches+=':'
-            else: matches+=' '
-            prn='%3d %s %6.4f %6.4f %6.4f %6.4f %6.4f %1s'%vals
-            print('result:',obj.ssp.bmrid,prn,os8[i],iden8, end=' ')
-            if not iden8:print(pri[allss8.index(os8[i])])
-            else:print()
-            testdata.append((iden8,score,iden3,score3,confdigit,confdigit3))
-        if dotest:
-          print('summarizing performance',pid,'--------------------')
-          print(pid,'stats_confids:',allconfdigits3)
-          print(pid,'stats_confids:',allconfdigits)
-          print(pid,'stats_predict:',alls3maxs)
-          print(pid,'stats_predict:',alls8maxs)
-          print(pid,'stats_matches:',matches)
-          print(pid,'stats_observs:',''.join(os8))
-          print(pid,'stats_observs:',''.join(os3))
-        dnums='1234567890'
-        dtens,dones=divmod(len(alls8maxs),10)
-        dstr=dtens*dnums+dnums[:dones]
-        outfiles[4].write(dstr+'\n')
-        outfiles[4].write(seq+'\n')
-        outfiles[4].write(allconfdigits+'\n')
-        outfiles[4].write(alls8maxs+'\n')
-        outfiles[5].write(dstr+'\n')
-        outfiles[5].write(seq+'\n')
-        outfiles[5].write(allconfdigits3+'\n')
-        outfiles[5].write(alls3maxs+'\n')
-        for n in range(6):
-          outfiles[n].close()
-        return testdata
+	  visprobs3(fracs.transpose(),mini=obj.ssp.mini,maxi=obj.ssp.maxi)
+	  ##xticks(range(obj.ssp.mini,obj.ssp.maxi+1),obj.ssp.seq) #labels will overlap :(
+	  ##visprobs(post)
+	  ##show();1/0
+	##tr8,tr3=obj.evaluate('byres')
+	dotest=obj.ssp.dotest
+	if dotest:
+	  os8=obj.ssp.s8obs##[:-4]
+	  os3=obj.ssp.s3obs
+	##pot=post.transpose()
+	for i in range(len(probs)):
+	  for n in range(4):
+	    ##outfiles[n].write('%3d'%(i+1))
+	    outfiles[n].write(' %3s %3d'%(obj.ssp.seq[i],i+1))
+	  pri=probs[i]
+	  outfiles[0].write(' %6.4f %6.4f %6.4f %6.4f %6.4f %6.4f %6.4f %6.4f\n'%tuple(pri))
+	  pri3=[sum([pri[j] for j in indss3[k]]) for k in 'HSC']
+	  outfiles[1].write(' %6.4f %6.4f %6.4f\n'%tuple(pri3))
+	  if i in ru:
+	    ##pti=pot[ru.index(i)]
+	    p0i=obj.post0ref[ru.index(i)]
+	  else:
+	    ##pti=[-9]*8
+	    p0i=0.000
+	  mip=pri.argmax()
+	  mip3=array(pri3).argmax()
+	  s8maxave=allss8[mip]
+	  s3maxave=allss3[mip3]
+	  s8max=obj.s8[i]
+	  s3max=obj.s3[i]
+	  alls8maxs+=s8max
+	  alls3maxs+=s3max
+	  ##s3max=conv8to3[s8max]
+	  entr=shannon(pri)
+	  score,confdigit=get_score(pri[mip],p0i)
+	  score3,confdigit3=get_score(pri3[mip3],p0i)
+	  allconfdigits+=confdigit
+	  allconfdigits3+=confdigit3
+	  vals=(i+1,s8max,pri[mip],exp(entr),p0i,score,confdigit)
+	  vals3=(i+1,s3max,pri3[mip3],exp(entr),p0i,score3,confdigit3)
+	  outfiles[2].write(' %s %6.4f %6.4f\n'%(s8max,pri[mip],p0i))
+	  outfiles[3].write(' %s %6.4f %6.4f\n'%(s3max,pri3[mip3],p0i))
+	  if dotest:
+	    iden8=os8[i]==s8max
+	    iden3=os3[i]==s3max
+	    if iden8:matches+='|'
+	    elif iden3:matches+=':'
+	    else: matches+=' '
+	    prn='%3d %s %6.4f %6.4f %6.4f %6.4f %6.4f %1s'%vals
+	    print 'result:',obj.ssp.bmrid,prn,os8[i],iden8,
+	    if not iden8:print pri[allss8.index(os8[i])]
+	    else:print
+	    testdata.append((iden8,score,iden3,score3,confdigit,confdigit3))
+	if dotest:
+	  print 'summarizing performance',pid,'--------------------'
+	  print pid,'stats_confids:',allconfdigits3
+	  print pid,'stats_confids:',allconfdigits
+	  print pid,'stats_predict:',alls3maxs
+	  print pid,'stats_predict:',alls8maxs
+	  print pid,'stats_matches:',matches
+	  print pid,'stats_observs:',''.join(os8)
+	  print pid,'stats_observs:',''.join(os3)
+	dnums='1234567890'
+	dtens,dones=divmod(len(alls8maxs),10)
+	dstr=dtens*dnums+dnums[:dones]
+	outfiles[4].write(dstr+'\n')
+	outfiles[4].write(seq+'\n')
+	outfiles[4].write(allconfdigits+'\n')
+	outfiles[4].write(alls8maxs+'\n')
+	outfiles[5].write(dstr+'\n')
+	outfiles[5].write(seq+'\n')
+	outfiles[5].write(allconfdigits3+'\n')
+	outfiles[5].write(alls3maxs+'\n')
+	for n in range(6):
+	  outfiles[n].close()
+	return testdata
 
     def breed(self,limitfac=100.0,expandfac=1.0,temperature=0.3,probs=(0.6,0.3,0.1),
-              growthmode='replace',selrats=(0.5,2.0),sortnum=10):
-        children=SOPopulation()
-        cnt=0;numrep=0
-        size=len(self)#or maybe place inside loop?
-        dct={}
-        flags=['coil','incr','decr','split','del','H2G','C2G']
-        self.iddct=dct
-        for obj in self:dct[obj.getid()]=obj
-        print('breeding population',size,limitfac,temperature,growthmode)
-        while cnt<size*limitfac and len(children)<size*expandfac:
-          #find mates (only one in case of mutation)
-          i=self.selectNormal(selrats[0],size)
-          obji=self[i]
-          ##print 'breeding object',i##,onum
-          #find breeding operation - and breed mates
-          rn=uniform(0.0,1.0)
-          psum=0.0;onum=None
-          for j in range(len(probs)):
-            psum+=probs[j]
-            if rn<psum:break
-          prevener=obji.energy
-          if j==0:
-            #---mutation---
-            ##child=obji.mutate()#consider multiple mutations?
-            ind,I,ss8,info=obji.choose_mutation()##verb=False)
-            locpost,locdiff=obji.get_diff_mutation(I,ss8)
-            enerdiff=-locdiff;childener='mut'
-            if debug:print('mutation:',ind,I,ss8,info,flags[ind])
-            ##testscore=locdiff+obji.score
-            ##printr'testing sum for sumpostlik:',testscore,locdiff,flags[I],ss8
-            ##success=obji.evaluate_local_observed(i,ss8)
-            childid=''.join(obji.segments.get_s8_mutation(flags[ind],ind,I,ss8))
-            repi=i
-          elif j==1:
-            #---crossover---(reproduce)
-            onum=i
-            while onum==i:onum=self.selectNormal(selrats[1],size)
-            objo=self[onum]
-            prevenero=objo.energy
-            child=obji.crossover(objo)
-            child.init_segments()
-            if debug:print('crossover(bi):',child)
-            ch3,ch8=child.segments.remedy_disallowed()
-            if prevener>=prevenero:repi=i
-            else:repi=onum
-            childid=child.getid()
-          elif j==2:
-            #---multicrossover---(non-biological reproduction)
-            onum=-1;repi=-1;objo=self[-1]
-            child=objo.multicrossover(self,selrats[1],size)
-            child.init_segments()
-            if debug:print('multicrossover:',child)
-            ch3,ch8=child.segments.remedy_disallowed()
-            childid=child.getid()
-          #consider acceptance of child
-          if childid in dct:
-            pass##dct[childid]+=1
-            ##print 'note child allready used',childid,dct[childid],cnt
-            ##print 'note child allready used',childid,cnt
-          else:
-           if j>0:
-                child.calculate_fitness()
-                childener=child.energy
-                enerdiff=childener-prevener
-                if debug:print('crossover',j,enerdiff)
-           ptest=999
-           if enerdiff>0:
-            ptest=exp(-(enerdiff)/temperature)
-            if repi==0:ptest=-999#to ensure that very best individual survives!
+	      growthmode='replace',selrats=(0.5,2.0),sortnum=10):
+	children=SOPopulation()
+	cnt=0;numrep=0
+	size=len(self)#or maybe place inside loop?
+	dct={}
+	flags=['coil','incr','decr','split','del','H2G','C2G']
+	self.iddct=dct
+	for obj in self:dct[obj.getid()]=obj
+	print 'breeding population',size,limitfac,temperature,growthmode
+	while cnt<size*limitfac and len(children)<size*expandfac:
+	  #find mates (only one in case of mutation)
+	  i=self.selectNormal(selrats[0],size)
+	  obji=self[i]
+	  ##print 'breeding object',i##,onum
+	  #find breeding operation - and breed mates
+	  rn=uniform(0.0,1.0)
+	  psum=0.0;onum=None
+	  for j in range(len(probs)):
+	    psum+=probs[j]
+	    if rn<psum:break
+	  prevener=obji.energy
+	  if j==0:
+	    #---mutation---
+    	    ##child=obji.mutate()#consider multiple mutations?
+	    ind,I,ss8,info=obji.choose_mutation()##verb=False)
+	    locpost,locdiff=obji.get_diff_mutation(I,ss8)
+	    enerdiff=-locdiff;childener='mut'
+	    if debug:print 'mutation:',ind,I,ss8,info,flags[ind]
+	    ##testscore=locdiff+obji.score
+	    ##printr'testing sum for sumpostlik:',testscore,locdiff,flags[I],ss8
+	    ##success=obji.evaluate_local_observed(i,ss8)
+	    childid=''.join(obji.segments.get_s8_mutation(flags[ind],ind,I,ss8))
+	    repi=i
+	  elif j==1:
+	    #---crossover---(reproduce)
+	    onum=i
+	    while onum==i:onum=self.selectNormal(selrats[1],size)
+	    objo=self[onum]
+	    prevenero=objo.energy
+	    child=obji.crossover(objo)
+	    child.init_segments()
+	    if debug:print 'crossover(bi):',child
+  	    ch3,ch8=child.segments.remedy_disallowed()
+	    if prevener>=prevenero:repi=i
+	    else:repi=onum
+	    childid=child.getid()
+	  elif j==2:
+	    #---multicrossover---(non-biological reproduction)
+	    onum=-1;repi=-1;objo=self[-1]
+	    child=objo.multicrossover(self,selrats[1],size)
+	    child.init_segments()
+	    if debug:print 'multicrossover:',child
+  	    ch3,ch8=child.segments.remedy_disallowed()
+	    childid=child.getid()
+	  #consider acceptance of child
+	  if childid in dct:
+	    pass##dct[childid]+=1
+	    ##print 'note child allready used',childid,dct[childid],cnt
+	    ##print 'note child allready used',childid,cnt
+	  else:
+	   if j>0:
+		child.calculate_fitness()
+		childener=child.energy
+		enerdiff=childener-prevener
+		if debug:print 'crossover',j,enerdiff
+	   ptest=999
+	   if enerdiff>0:
+	    ptest=exp(-(enerdiff)/temperature)
+	    if repi==0:ptest=-999#to ensure that very best individual survives!
            if ptest>uniform(0.0,1.0):
-            ##print 'breedinfo: using',j,i,onum,enerdiff,childener,prevener,ptest
-            if j==0:
-                child=obji.get_clone(need_segments=True) #remember to update backpcs
-                child.segments.execute_mutation(flags[ind],ind,I,ss8,info)
-                ##child.calculate_fitness()#sets energy
-                child.S9s=obji.newS9s #child is clone
-                post0refnew,ranges=obji.post0refnewdata
-                child.post0ref[ranges[0]:ranges[1]]=post0refnew
-                child.energy=prevener+enerdiff
-            if debug:
-              q8,q3=child.evaluate()
-              print('breedinfo: using',j,i,'repi'+str(repi),onum,enerdiff,childener,prevener,ptest,q8*1000,q3*1000)
-              print('newss:',child,childener)
-            dct[childid]=child
-            numrep+=1
-            if True:
-                if growthmode=='replace':
-                  self[repi]=child 
-                elif growthmode=='append':
-                  if j==0:self[repi]=child
-                  else:self.append(child) #doesnt improve result
-                if numrep%sortnum==0:
-                  self.sort('energy')
-                  self.derive_stats(cnt)
-           ##else:print 'breedinfo: rejecting',j,i,onum,childener,prevener,ptest
-          cnt+=1
+	    ##print 'breedinfo: using',j,i,onum,enerdiff,childener,prevener,ptest
+	    if j==0:
+		child=obji.get_clone(need_segments=True) #remember to update backpcs
+		child.segments.execute_mutation(flags[ind],ind,I,ss8,info)
+		##child.calculate_fitness()#sets energy
+		child.S9s=obji.newS9s #child is clone
+		post0refnew,ranges=obji.post0refnewdata
+		child.post0ref[ranges[0]:ranges[1]]=post0refnew
+		child.energy=prevener+enerdiff
+	    if debug:
+	      q8,q3=child.evaluate()
+	      print 'breedinfo: using',j,i,'repi'+str(repi),onum,enerdiff,childener,prevener,ptest,q8*1000,q3*1000
+	      print 'newss:',child,childener
+	    dct[childid]=child
+	    numrep+=1
+	    if True:
+	        if growthmode=='replace':
+		  self[repi]=child 
+	        elif growthmode=='append':
+		  if j==0:self[repi]=child
+		  else:self.append(child) #doesnt improve result
+		if numrep%sortnum==0:
+		  self.sort('energy')
+		  self.derive_stats(cnt)
+	   ##else:print 'breedinfo: rejecting',j,i,onum,childener,prevener,ptest
+	  cnt+=1
 
     def multi_breed(self,pops,limitfac=100):
-        print('merging populations',len(pops))
-        ##for popul in pops:popul.breed() must be breed before
-        merged=pops[0]
-        for i in range(1,len(pops)):merged.mergewith(pops[i])
-        merged.sort('energy')
-        merged.derive_stats(-1)
-        merged.cull(30)
-        merged.breed(limitfac=limitfac)
-        return merged
+	print 'merging populations',len(pops)
+	##for popul in pops:popul.breed() must be breed before
+	merged=pops[0]
+	for i in range(1,len(pops)):merged.mergewith(pops[i])
+	merged.sort('energy')
+	merged.derive_stats(-1)
+	merged.cull(30)
+	merged.breed(limitfac=limitfac)
+	return merged
 
 
 def predict8ss(bmrid,seq,resis,pc1s,pc2s,zsco,dotest=False,dovis=False):
@@ -2074,15 +2074,15 @@ def predict8ss(bmrid,seq,resis,pc1s,pc2s,zsco,dotest=False,dovis=False):
   ##merged=popul.multi_breed(comb)
   ##q8breed,q3breed=merged[0].evaluate('breed')
   ##trueprobs_breed=merged.trueprobs
-  print('final s8:',bmrid,''.join(popul[0].s8))
+  print 'final s8:',bmrid,''.join(popul[0].s8)
   testdata=popul.summarize_as_probs(dovis)
   if dotest:
     q8breed,q3breed=popul[0].evaluate('breed')
     trueprobs_breed=popul.trueprobs
-    print('TOTAL TIME: (ms)',1000*(time.time()-T_0))
+    print 'TOTAL TIME: (ms)',1000*(time.time()-T_0)
     sscsi=getCSIpreds(ssp,bmrid)
     q8csi,q3csi=sscsi.evaluate('CSI')
-    print('summary %5s %6.4f %6.4f %7.4f %6.4f %6.4f  %6.4f %6.4f %7.4f'%(bmrid,trueprobs_priors,trueprobs_breed,trueprobs_breed-trueprobs_priors,q3breed,q8breed,q3csi,q8csi,q3breed-q3csi))
+    print 'summary %5s %6.4f %6.4f %7.4f %6.4f %6.4f  %6.4f %6.4f %7.4f'%(bmrid,trueprobs_priors,trueprobs_breed,trueprobs_breed-trueprobs_priors,q3breed,q8breed,q3csi,q8csi,q3breed-q3csi)
     ##print roc_auc_score([tup[0] for tup in testdata],[tup[1] for tup in testdata])
     return trueprobs_breed-trueprobs_priors,q8breed,q3breed-q3csi,testdata
 
@@ -2106,8 +2106,8 @@ def test14():
  for i in range(1,10):
   labsi=array(labs8)[conf8==i]
   truei=sum(labsi)*1.0/len(labsi)
-  print(i,truei,len(labsi)*1.0/len(labs8))
- print(average(result,axis=0),auc8,auc3)
+  print i,truei,len(labsi)*1.0/len(labs8)
+ print average(result,axis=0),auc8,auc3
 
 ##test14()
 ##from sklearn.metrics import roc_auc_score
@@ -2158,7 +2158,7 @@ def calc_pkas_from_seq(seq=None, T=293.15, Ion=0.1):
   ##pK0 = {"n":7.5, "D":4.0, "E":4.4, "H":6.6, "C":8.6, "K":10.4, "R":12.0, "Y":9.6, "c":3.5} #was these values!
   pK0 = {"n":8.23, "D":3.86, "E":4.34, "H":6.45, "C":8.49, "K":10.34, "R":13.9, "Y":9.76, "c":3.55}
 
-  pos = np.array([i for i in range(len(seq)) if seq[i] in list(pK0.keys())])
+  pos = np.array([i for i in range(len(seq)) if seq[i] in pK0.keys()])
   N = pos.shape[0]
   I = np.diag(np.ones(N))
   sites = ''.join([seq[i] for i in pos])
@@ -2253,20 +2253,20 @@ W 175.92744  57.23836  29.56502 122.10991   7.97816   4.61061   3.18540
 Y 175.49651  57.82427  38.76184 121.43652   8.05749   4.51123   2.91782'''
 
 def initcorcents():
-    datc=tablecent.split('\n')
+    datc=string.split(tablecent,'\n')
     ##aas=string.split(datc[0],'\t')[1:]
-    aas=datc[0].split()[1:]
+    aas=string.split(datc[0])[1:]
     dct={}
     for i in range(20):
       ##vals=string.split(datc[1+i],'\t')
-      vals=datc[1+i].split()
+      vals=string.split(datc[1+i])
       aai=vals[0]
       dct[aai]={}
       for j in range(7):
-        atnj=aas[j]
-        dct[aai][atnj]=eval(vals[1+j])
+	atnj=aas[j]
+	dct[aai][atnj]=eval(vals[1+j])
     return dct
-        
+	
 
 tablenei='''C A  0.06131 -0.04544  0.14646  0.01305
  C C  0.04502  0.12592 -0.03407 -0.02654
@@ -2425,24 +2425,24 @@ HA n 0.048624
 HA c 0.042019'''
 
 def initcorneis():
-    datc=tablenei.split('\n')
+    datc=string.split(tablenei,'\n')
     dct={}
     for i in range(20*7):
-      vals=datc[i].split()
+      vals=string.split(datc[i])
       atn=vals[0]
       aai=vals[1]
       if not aai in dct:dct[aai]={}
       dct[aai][atn]=[eval(vals[2+j]) for j in range(4)]
-    datc=tabletermcorrs.split('\n')
+    datc=string.split(tabletermcorrs,'\n')
     for i in range(len(datc)):
-      vals=datc[i].split()
+      vals=string.split(datc[i])
       atn=vals[0]
       term=vals[1]
       if not term in dct:dct[term]={}
       if term=='n':  dct['n'][atn]=[None,None,None,eval(vals[-1])]
       elif term=='c':dct['c'][atn]=[eval(vals[-1]),None,None,None]
     return dct
-        
+	
 
 tabletempk='''aa  CA   CB   C     N    H    HA
 A  -2.2  4.7 -7.1  -5.3 -9.0  0.7
@@ -2467,10 +2467,8 @@ W  -2.7  3.1 -7.9 -10.1 -7.8  0.4
 Y  -5.0  2.9 -7.7 -12.0 -7.7  0.5'''
 
 def gettempkoeff():
-  #EA datc=string.split(tabletempk,'\n')
-  datc=tabletempk.split('\n')
-  #EA buf=[string.split(lin) for lin in datc]
-  buf=[lin.split() for lin in datc]
+  datc=string.split(tabletempk,'\n')
+  buf=[string.split(lin) for lin in datc]
   headers=buf[0][1:]
   dct={}
   for atn in headers:
@@ -2478,7 +2476,7 @@ def gettempkoeff():
   for lin in buf[1:]:
     aa=lin[0]
     for j,atn in enumerate(headers):
-        dct[atn][aa]=eval(lin[1+j])
+	dct[atn][aa]=eval(lin[1+j])
   return dct
 
 tablecombdevs='''C -1 G r xrGxx  0.2742  1.4856
@@ -2823,21 +2821,20 @@ R NE 85.6 91.5 5.9
 R NG 71.2 93.2 22'''
 
 def initcorrcomb():
-    #EA datc=string.split(tablecombdevs,'\n')
-    datc=tablecombdevs.split('\n')
-    buf=[lin.split() for lin in datc]
+    datc=string.split(tablecombdevs,'\n')
+    buf=[string.split(lin) for lin in datc]
     dct={}
     for lin in buf:
       atn=lin[0]
       if not atn in dct:dct[atn]={}
-      neipos=int(lin[1])
+      neipos=string.atoi(lin[1])
       centgroup=lin[2]
       neigroup= lin[3]
       key=(neipos,centgroup,neigroup)#(k,l,m)
       segment=lin[4]
       dct[atn][segment]=key,eval(lin[-2])
     return dct
-        
+	
 TEMPCORRS=gettempkoeff()
 ##dct[atn][aa]=eval(lin[1+j])
 CENTSHIFTS=initcorcents()
@@ -2852,55 +2849,55 @@ def predPentShift(pent,atn):
     sh=CENTSHIFTS[aac][atn]
     allneipos=[2,1,-1,-2]
     for i in range(4):
-        aai=pent[2+allneipos[i]]
-        if aai in NEICORRS:
-          corr=NEICORRS[aai][atn][i]
-          sh+=corr
+	aai=pent[2+allneipos[i]]
+	if aai in NEICORRS:
+	  corr=NEICORRS[aai][atn][i]
+	  sh+=corr
     groups=['G','P','FYW','LIVMCA','KR','DE']##,'NQSTHncX']
     labels='GPra+-p' #(Gly,Pro,Arom,Aliph,pos,neg,polar)
     grstr=''
     for i in range(5):
-        aai=pent[i]
-        found=False
-        for j,gr in enumerate(groups):
-          if aai in gr:
-            grstr+=labels[j]
-            found=True
-            break
-        if not found:grstr+='p'#polar
+	aai=pent[i]
+	found=False
+	for j,gr in enumerate(groups):
+	  if aai in gr:
+	    grstr+=labels[j]
+	    found=True
+	    break
+	if not found:grstr+='p'#polar
     centgr=grstr[2]
     for segm in COMBCORRS[atn]:
-        key,combval=COMBCORRS[atn][segm]
+	key,combval=COMBCORRS[atn][segm]
         neipos,centgroup,neigroup=key#(k,l,m)
-        if centgroup==centgr and grstr[2+neipos]==neigroup:
-         if (centgr,neigroup)!=('p','p') or pent[2] in 'ST':
-          #pp comb only used when center is Ser or Thr!
-          sh+=combval
+	if centgroup==centgr and grstr[2+neipos]==neigroup:
+	 if (centgr,neigroup)<>('p','p') or pent[2] in 'ST':
+	  #pp comb only used when center is Ser or Thr!
+	  sh+=combval
     return sh
-        
+	
 def gettempcorr(aai,atn,tempdct,temp):
     return tempdct[atn][aai]/1000*(temp-298)
 
 def get_phshifts():
-    datc=tablephshifts.split('\n')
-    buf=[lin.split() for lin in datc]
+    datc=string.split(tablephshifts,'\n')
+    buf=[string.split(lin) for lin in datc]
     dct={}
     na=None
     for lin in buf:
       if len(lin)>3:
-        resn=lin[0]
-        atn=lin[1]
-        sh0=eval(lin[2])
-        sh1=eval(lin[3])
-        shd=eval(lin[4])
-        if not resn in dct:dct[resn]={}
-        dct[resn][atn]=shd
-        if len(lin)>6:#neighbor data
-          for n in range(2):
-            shdn=eval(lin[5+n])
-            nresn=resn+'ps'[n]
-            if not nresn in dct:dct[nresn]={}
-            dct[nresn][atn]=shdn
+	resn=lin[0]
+	atn=lin[1]
+	sh0=eval(lin[2])
+	sh1=eval(lin[3])
+	shd=eval(lin[4])
+	if not resn in dct:dct[resn]={}
+	dct[resn][atn]=shd
+	if len(lin)>6:#neighbor data
+	  for n in range(2):
+	    shdn=eval(lin[5+n])
+	    nresn=resn+'ps'[n]
+	    if not nresn in dct:dct[nresn]={}
+	    dct[nresn][atn]=shdn
     return dct
 
 def initfilcsv(filename):
@@ -2908,148 +2905,148 @@ def initfilcsv(filename):
   buffer=file.readlines()
   file.close()
   for i in range(len(buffer)):
-     buffer[i]=buffer[i][:-1].split(',')
+     buffer[i]=string.split(buffer[i][:-1],',')
   return buffer
 
 def write_csv_pkaoutput(pkadct,seq,temperature,ion):
-        seq=seq[:min(150,len(seq))]
-        name='outpepKalc_%s_T%6.2f_I%4.2f.csv'%(seq,temperature,ion)
-        out=open(name,'w')
-        out.write('Site,pKa value,pKa shift,Hill coefficient\n')
-        for i in pkadct:
-          pKa,nH,resi=pkadct[i]
-          reskey=resi+str(i+1)
-          diff=pKa-pK0[resi]
-          out.write('%s,%5.3f,%5.3f,%5.3f\n'%(reskey,pKa,diff,nH))
-        out.close()
+	seq=seq[:min(150,len(seq))]
+	name='outpepKalc_%s_T%6.2f_I%4.2f.csv'%(seq,temperature,ion)
+	out=open(name,'w')
+	out.write('Site,pKa value,pKa shift,Hill coefficient\n')
+	for i in pkadct:
+	  pKa,nH,resi=pkadct[i]
+	  reskey=resi+str(i+1)
+	  diff=pKa-pK0[resi]
+	  out.write('%s,%5.3f,%5.3f,%5.3f\n'%(reskey,pKa,diff,nH))
+	out.close()
 
 def read_csv_pkaoutput(seq,temperature,ion,name=None):
-        seq=seq[:min(150,len(seq))]
-        if VERB:print('reading csv',name)
-        if name==None:name='outpepKalc_%s_T%6.2f_I%4.2f.csv'%(seq,temperature,ion)
-        try:out=open(name,'r')
-        except IOError:return None
-        buf=initfilcsv(name)
-        for lnum,data in enumerate(buf):
-          if len(data)>0 and data[0]=='Site':break
-        pkadct={}
-        for data in buf[lnum+1:]:
-          reskey,pKa,diff,nH=data
-          i=int(reskey[1:])-1
-          resi=reskey[0]
-          pKaval=eval(pKa)
-          nHval=eval(nH)
-          pkadct[i]=pKaval,nHval,resi
-        return pkadct
+	seq=seq[:min(150,len(seq))]
+        if VERB:print 'reading csv',name
+	if name==None:name='outpepKalc_%s_T%6.2f_I%4.2f.csv'%(seq,temperature,ion)
+	try:out=open(name,'r')
+	except IOError:return None
+	buf=initfilcsv(name)
+	for lnum,data in enumerate(buf):
+	  if len(data)>0 and data[0]=='Site':break
+	pkadct={}
+	for data in buf[lnum+1:]:
+	  reskey,pKa,diff,nH=data
+	  i=string.atoi(reskey[1:])-1
+	  resi=reskey[0]
+	  pKaval=eval(pKa)
+	  nHval=eval(nH)
+	  pkadct[i]=pKaval,nHval,resi
+	return pkadct
 
 def getphcorrs(seq,temperature,pH,ion,pkacsvfilename=None):
-        bbatns=['C','CA','CB','HA','H','N','HB']
+	bbatns=['C','CA','CB','HA','H','N','HB']
         dct=get_phshifts()
-        Ion=max(0.0001,ion)
-        pkadct=read_csv_pkaoutput(seq,temperature,ion,pkacsvfilename)
-        if pkadct==None:
-          pkadct=calc_pkas_from_seq('n'+seq+'c',temperature,Ion)
-          write_csv_pkaoutput(pkadct,seq,temperature,ion)
-        outdct={}
-        for i in pkadct:
-          if VERB:print('pkares: %6.3f %6.3f %1s'%pkadct[i],i)
-          pKa,nH,resi=pkadct[i]
-          frac =fun(pH,pKa,nH)
-          frac7=fun(7.0,pK0[resi],nH)
-          if resi in 'nc':jump=0.0#so far
-          else:
-           for atn in bbatns:
-            if not atn in outdct:outdct[atn]={}
-            if VERB:print('data:',atn,pKa,nH,resi,i,atn,pH)
-            dctresi=dct[resi]
-            try:
-                delta=dctresi[atn]
-                jump =frac *delta
-                jump7=frac7*delta
-                key=(resi,atn)
-            except KeyError:
-                ##if not (resi in 'RKCY' and atn=='H') and not (resi == 'R' and atn=='N'):
-                print('warning no key:',resi,i,atn)
-                delta=999;jump=999;jump7=999
-            if delta<99:
-             jumpdelta=jump-jump7
-             if not i in outdct[atn]:outdct[atn][i]=[resi,jumpdelta]
-             else:
-                outdct[atn][i][0]=resi
-                outdct[atn][i][1]+=jumpdelta
-             if VERB:print('%3s %5.2f %6.4f %s %3d %5s %8.5f %8.5f %4.2f'%(atn,pKa,nH,resi,i,atn,jump,jump7,pH))
-             if resi+'p' in dct and atn in dct[resi+'p']:
-              for n in range(2):
-                ni=i+2*n-1
-                ##if ni is somewhere in seq...
-                nresi=resi+'ps'[n]
-                ndelta=dct[nresi][atn]
-                jump =frac *ndelta
-                jump7=frac7*ndelta
-                jumpdelta=jump-jump7
-                if not ni in outdct[atn]:outdct[atn][ni]=[None,jumpdelta]
-                else:outdct[atn][ni][1]+=jumpdelta
-        return outdct
+	Ion=max(0.0001,ion)
+	pkadct=read_csv_pkaoutput(seq,temperature,ion,pkacsvfilename)
+	if pkadct==None:
+	  pkadct=calc_pkas_from_seq('n'+seq+'c',temperature,Ion)
+	  write_csv_pkaoutput(pkadct,seq,temperature,ion)
+	outdct={}
+	for i in pkadct:
+	  if VERB:print 'pkares: %6.3f %6.3f %1s'%pkadct[i],i
+	  pKa,nH,resi=pkadct[i]
+	  frac =fun(pH,pKa,nH)
+	  frac7=fun(7.0,pK0[resi],nH)
+	  if resi in 'nc':jump=0.0#so far
+	  else:
+	   for atn in bbatns:
+	    if not atn in outdct:outdct[atn]={}
+	    if VERB:print 'data:',atn,pKa,nH,resi,i,atn,pH
+	    dctresi=dct[resi]
+	    try:
+		delta=dctresi[atn]
+		jump =frac *delta
+		jump7=frac7*delta
+		key=(resi,atn)
+	    except KeyError:
+	        ##if not (resi in 'RKCY' and atn=='H') and not (resi == 'R' and atn=='N'):
+		print 'warning no key:',resi,i,atn
+		delta=999;jump=999;jump7=999
+	    if delta<99:
+	     jumpdelta=jump-jump7
+	     if not i in outdct[atn]:outdct[atn][i]=[resi,jumpdelta]
+	     else:
+		outdct[atn][i][0]=resi
+		outdct[atn][i][1]+=jumpdelta
+	     if VERB:print '%3s %5.2f %6.4f %s %3d %5s %8.5f %8.5f %4.2f'%(atn,pKa,nH,resi,i,atn,jump,jump7,pH)
+	     if resi+'p' in dct and atn in dct[resi+'p']:
+	      for n in range(2):
+	        ni=i+2*n-1
+	        ##if ni is somewhere in seq...
+		nresi=resi+'ps'[n]
+		ndelta=dct[nresi][atn]
+		jump =frac *ndelta
+		jump7=frac7*ndelta
+		jumpdelta=jump-jump7
+	        if not ni in outdct[atn]:outdct[atn][ni]=[None,jumpdelta]
+	        else:outdct[atn][ni][1]+=jumpdelta
+	return outdct
 
 def getpredshifts(seq,temperature,pH,ion,usephcor=True,pkacsvfile=None,identifier=''):
         tempdct=gettempkoeff()
         bbatns =['C','CA','CB','HA','H','N','HB']
-        if usephcor:
-          phcorrs=getphcorrs(seq,temperature,pH,ion,pkacsvfile)
-        else:phcorrs={}
-        shiftdct={}
-        for i in range(1,len(seq)-1):
-          if seq[i] in AAstandard:#else: do nothing
-            res=str(i+1)
-            trip=seq[i-1]+seq[i]+seq[i+1]
-            phcorr=None
-            shiftdct[(i+1,seq[i])]={}
-            for at in bbatns:
-              if not (trip[1],at) in [('G','CB'),('G','HB'),('P','H')]:
-                if i==1:
-                  pent='n'+     trip+seq[i+2]
-                elif i==len(seq)-2:
-                  pent=seq[i-2]+trip+'c'
-                else:
-                  pent=seq[i-2]+trip+seq[i+2]
-                shp=predPentShift(pent,at)
-                if shp!=None:
-                 if not (at in ('CA','CB') and seq[i]=='C'):
-                  if at!='HB':shp+=gettempcorr(trip[1],at,tempdct,temperature)
-                  if at in phcorrs and i in phcorrs[at]:
-                     phdata=phcorrs[at][i]
-                     resi=phdata[0]
-                     ##assert resi==seq[i]
-                     if seq[i] in 'CDEHRKY' and resi!=seq[i]:
-                        print('WARNING: residue mismatch',resi,seq[i],i,phdata,at)
-                     phcorr=phdata[1]
-                     if abs(phcorr)<9.9:
-                       shp-=phcorr
-                  shiftdct[(i+1,seq[i])][at]=shp
-                  if VERB:print('predictedshift: %5s %3d %1s %2s %8.4f'%(identifier,i,seq[i],at,shp),phcorr)
-        return shiftdct
+	if usephcor:
+	  phcorrs=getphcorrs(seq,temperature,pH,ion,pkacsvfile)
+	else:phcorrs={}
+	shiftdct={}
+	for i in range(1,len(seq)-1):
+	  if seq[i] in AAstandard:#else: do nothing
+	    res=str(i+1)
+	    trip=seq[i-1]+seq[i]+seq[i+1]
+	    phcorr=None
+	    shiftdct[(i+1,seq[i])]={}
+	    for at in bbatns:
+	      if not (trip[1],at) in [('G','CB'),('G','HB'),('P','H')]:
+		if i==1:
+		  pent='n'+     trip+seq[i+2]
+		elif i==len(seq)-2:
+		  pent=seq[i-2]+trip+'c'
+		else:
+		  pent=seq[i-2]+trip+seq[i+2]
+	        shp=predPentShift(pent,at)
+		if shp<>None:
+		 if not (at in ('CA','CB') and seq[i]=='C'):
+	          if at<>'HB':shp+=gettempcorr(trip[1],at,tempdct,temperature)
+		  if at in phcorrs and i in phcorrs[at]:
+		     phdata=phcorrs[at][i]
+		     resi=phdata[0]
+		     ##assert resi==seq[i]
+		     if seq[i] in 'CDEHRKY' and resi<>seq[i]:
+			print 'WARNING: residue mismatch',resi,seq[i],i,phdata,at
+		     phcorr=phdata[1]
+		     if abs(phcorr)<9.9:
+		       shp-=phcorr
+		  shiftdct[(i+1,seq[i])][at]=shp
+		  if VERB:print 'predictedshift: %5s %3d %1s %2s %8.4f'%(identifier,i,seq[i],at,shp),phcorr
+	return shiftdct
 
 def writeOutput(name,dct):
-        try:out=open(name,'w')
-        except IOError:
-          print('warning file name too long!',len(name),name)
-          subnames=name.split('_')
-          name='_'.join([subnames[0]]+[subnames[1][:120]]+subnames[2:])
-          out=open(name,'w')
+	try:out=open(name,'w')
+	except IOError:
+	  print 'warning file name too long!',len(name),name
+	  subnames=name.split('_')
+	  name=string.join([subnames[0]]+[subnames[1][:120]]+subnames[2:],'_')
+	  out=open(name,'w')
         bbatns =['N','C','CA','CB','H','HA','HB']
-        out.write('#NUM AA   N ')
-        out.write(' %7s %7s %7s %7s %7s %7s\n'%tuple(bbatns[1:]))
-        reskeys=list(dct.keys());reskeys.sort()
-        for resnum,resn in reskeys:
-          shdct=dct[(resnum,resn)]
-          if len(shdct)>0:
-            out.write('%-4d %1s '%(resnum,resn))
-            for at in bbatns:
-              shp=0.0
-              if at in shdct:shp=shdct[at]
-              out.write(' %7.3f'%shp)
-          out.write('\n')
-        out.close()
+	out.write('#NUM AA   N ')
+	out.write(' %7s %7s %7s %7s %7s %7s\n'%tuple(bbatns[1:]))
+	reskeys=dct.keys();reskeys.sort()
+	for resnum,resn in reskeys:
+	  shdct=dct[(resnum,resn)]
+	  if len(shdct)>0:
+	    out.write('%-4d %1s '%(resnum,resn))
+	    for at in bbatns:
+	      shp=0.0
+	      if at in shdct:shp=shdct[at]
+	      out.write(' %7.3f'%shp)
+	  out.write('\n')
+	out.close()
 
 def potenci(seq,pH=7.0,temp=298,ion=0.1,pkacsvfile=None,doreturn=True):
     ##README##......
@@ -3068,21 +3065,21 @@ def potenci(seq,pH=7.0,temp=298,ion=0.1,pkacsvfile=None,doreturn=True):
     name='outPOTENCI_%s_T%6.2f_I%4.2f_pH%4.2f.txt'%(seq[:min(150,len(seq))],temp,ion,pH)
     usephcor = pH<6.99 or pH>7.01
     if len(seq)<5:
-        print('FAILED: at least 5 residues are required (exiting)') 
-        raise SystemExit
+	print 'FAILED: at least 5 residues are required (exiting)' 
+	raise SystemExit
     #------------- now ready to generate predicted shifts ---------------------
-    print('predicting random coil chemical shift with POTENCI using:',seq,pH,temp,ion,pkacsvfile)
+    print 'predicting random coil chemical shift with POTENCI using:',seq,pH,temp,ion,pkacsvfile
     shiftdct=getpredshifts(seq,temp,pH,ion,usephcor,pkacsvfile)
     #------------- write output nicely is SHIFTY format -----------------------$
     writeOutput(name,shiftdct)
-    print('chemical shift succesfully predicted, see output:',name)
+    print 'chemical shift succesfully predicted, see output:',name
     if doreturn: return shiftdct
 
 histdct_flattened=(2.0737054913103337e-10, 0.029518200092680934, 0.97048179969994852, 8.9102609389174977e-10, 0.049071251975264775, 0.95092874713370923, 3.6911845844839106e-09, 0.079951554923860677, 0.92004844138495467, 1.4645276032946968e-08, 0.12682756718735982, 0.87317241816736413, 5.5170502882584017e-08, 0.19418179262213037, 0.80581815220736663, 1.9535866625876679e-07, 0.28408625538027543, 0.71591354926105832, 6.4415744419331008e-07, 0.39341966288684982, 0.60657969295570613, 0.52492556339882823, 0.24358165501654738, 0.2314927815846245, 5.5564750876404044e-06, 0.62885124891949329, 0.37114319460541911, 2.1057352549240146e-05, 0.61171750797158275, 0.38826143467586793, 3.0971176979542517e-05, 0.51981670536451852, 0.48015232345850201, 7.915310450907783e-05, 0.61884065214048178, 0.38108019475500915, 0.00045690835118482965, 0.79503735616235505, 0.20450573548646017, 0.00037479162478264302, 0.35106708082817562, 0.64855812754704179, 0.00095386218989570288, 0.57450903465177372, 0.4245371031583306, 0.0020603975788089112, 0.61761448046266132, 0.38032512195852974, 0.10697471251615311, 0.740936476567855, 0.15208881091599186, 0.19327399498223335, 0.66933460014069035, 0.13739140487707624, 0.012958657581034067, 0.8553594104147666, 0.13168193200419931, 0.091851181267882026, 0.77756153682517193, 0.13058728190694613, 0.22921634513601896, 0.70560705274133872, 0.065176602122642202, 0.17138260006224124, 0.74739765730864161, 0.081219742629117173, 0.39611931387854205, 0.53348400777148219, 0.070396678349975719, 0.32077386008589764, 0.67887372861950723, 0.00035241129459517807, 0.34547036052878238, 0.53173852579655434, 0.12279111367466328, 0.15654016376325999, 0.84329817825782072, 0.00016165797891921677, 0.609236196608406, 0.39071653468646333, 4.7268705130734661e-05, 0.56507190622112824, 0.43487160797697183, 5.6485801899947119e-05, 0.72211884215624933, 0.27786639061478047, 1.4767228970310703e-05, 0.89076020079356311, 0.1092234770391385, 1.6322167298468004e-05, 0.9651593658187213, 0.034836824638462209, 3.8095428165094679e-06, 0.98971313476752076, 0.010286035965388558, 8.2926709062859595e-07, 0.96981453223812519, 0.03018366029636706, 1.8074655077167692e-06, 0.9800419677234179, 0.019957137967335396, 8.9430924670088857e-07, 0.9866363147631777, 0.013363233763595815, 4.5147322651919685e-07, 1.9109838135778465e-10, 0.023630638204507205, 0.97636936160439436, 8.2442113579148138e-10, 0.039442231792554197, 0.96055776738302479, 3.4371676755121813e-09, 0.064675160889006281, 0.93532483567382607, 1.3771494331934358e-08, 0.10360311557528777, 0.89639687065321794, 5.2622165192033297e-08, 0.16089625102505495, 0.83910369635277982, 1.8996806314544746e-07, 0.23997930062335224, 0.76002050940858468, 6.4159584961185574e-07, 0.34040915035607228, 0.65959020804807811, 1.6142671821825171e-06, 0.3656723330296458, 0.63432605270317199, 7.9306224762809292e-06, 0.42167471692381381, 0.57831735245370997, 1.4331997234628106e-05, 0.62168294461968965, 0.37830272338307569, 8.5079831053122454e-05, 0.35116882723558307, 0.64874609293336394, 0.00023739564627928063, 0.60858211393349881, 0.39118049042022185, 0.00027350017133546272, 0.35110265425567283, 0.64862384557299169, 0.0013094397503175168, 0.80436154464227105, 0.19432901560741142, 0.0011593081625392108, 0.6181721553663625, 0.38066853647109822, 0.0017483116290761852, 0.60143525528397734, 0.39681643308694647, 0.062346515643269242, 0.67173435620272981, 0.26591912815400082, 0.12117764676552746, 0.79268160196400617, 0.086140751270466262, 0.025364944414347012, 0.96071846892327084, 0.013916586662382227, 0.1253815227369563, 0.86842714038053614, 0.0061913368825075822, 0.035564561379828476, 0.71161999636365836, 0.25281544225651315, 0.05127083074821575, 0.94697591712442863, 0.0017532521273556747, 0.33683647246616599, 0.66246322641254274, 0.00070030112129126204, 0.20613528440390783, 0.7931944731511591, 0.00067024244493308304, 0.25475130826701098, 0.74500186152316994, 0.00024683020981902096, 0.38096153535572541, 0.618941435995089, 9.7028649185720704e-05, 0.4380554386001887, 0.56186912046014503, 7.5440939666278716e-05, 0.72201381857408975, 0.27782597825880734, 0.00016020316710293287, 0.46415121975875845, 0.53580664263808608, 4.2137603155417023e-05, 0.83863471128469635, 0.16135044999873116, 1.483871657248392e-05, 0.9127086014213116, 0.087279403938147634, 1.1994640540753855e-05, 0.95968276815616971, 0.040313147387399932, 4.0844564303048067e-06, 0.97959790349402753, 0.020400561247868244, 1.5352581042162526e-06, 0.98243937381474755, 0.017559637299381859, 9.8888587070698638e-07, 0.98837030712191354, 0.01162919912319507, 4.9375489140841599e-07, 1.7586070645157005e-10, 0.018919495073917988, 0.98108050475022135, 7.6114140518621012e-10, 0.031681081386595179, 0.96831891785226343, 1.5738979951325724e-09, 0.025765327484998785, 0.97423467094110328, 1.2883779943905633e-08, 0.084325190757747803, 0.91567479635847215, 4.9822664459746072e-08, 0.13253373783046729, 0.86746621234686827, 1.938707366951566e-07, 0.21307266355241578, 0.78692714257684759, 6.3126935162206797e-07, 0.29139135982217446, 0.70860800890847397, 3.1778932524635995e-06, 0.35119759109025267, 0.64879923101649484, 7.3222033521025827e-06, 0.62630845676289149, 0.37368422103375648, 3.5011493538620542e-05, 0.51981460507542765, 0.48015038343103372, 7.1272798885618945e-05, 0.15284352413112626, 0.84708520306998814, 0.00015475183905515138, 0.72141337200465983, 0.27843187615628495, 0.00027694019364964242, 0.43099593807618158, 0.56872712173016882, 0.0005940761539064874, 0.47400377256513898, 0.52540215128095458, 0.002552483169753832, 0.70714312419390568, 0.29030439263634056, 0.048136277614296952, 0.81499045482398769, 0.13687326756171533, 0.090692589975098353, 0.65142724668963636, 0.25788016333526537, 0.03745858302666627, 0.74951793816703616, 0.21302347880629754, 0.029535710506623215, 0.88648086977008478, 0.083983419723291999, 0.10213292270407413, 0.89080113308337361, 0.0070659442125522078, 0.08366492548264258, 0.8370359658293498, 0.079299108688007519, 0.24465858755181566, 0.7531436066998346, 0.0021978057483498241, 0.33657682568722619, 0.66195257374585037, 0.0014706005669234679, 0.40230659369205496, 0.59710432564384208, 0.00058908066410307588, 0.29238446867227558, 0.70719027286905833, 0.00042525845866613841, 0.40491597418577552, 0.59490669737192015, 0.00017732844230438293, 0.56505048739799879, 0.4348551243437338, 9.4388258267336206e-05, 0.56506660125667107, 0.4348675253489056, 6.5873394423309603e-05, 0.7958164435359204, 0.2041498156516921, 3.3740812387630269e-05, 0.68409674991869873, 0.31588289954646637, 2.0350534834945435e-05, 0.94542022483429133, 0.054570363018285849, 9.4121474229599436e-06, 0.92863027799932507, 0.071360647917449158, 9.0740832258402936e-06, 0.93479652168789862, 0.065197320514038481, 6.1577980629425805e-06, 0.98484176376230692, 0.015157164952703448, 1.071284989674963e-06, 0.98799996363359788, 0.011999396959327391, 6.3940707466488445e-07, 1.6165617676271101e-10, 0.015153116260222027, 0.98484688357812189, 7.0147936153724939e-10, 0.025440079913643904, 0.97455991938487674, 2.9521305956832856e-09, 0.042107899156463249, 0.95789209789140617, 1.2002430192798381e-08, 0.068446641981493875, 0.93155334601607587, 3.9989238031081283e-08, 0.23965735406034891, 0.76034260595041314, 1.8473809999672171e-07, 0.17690531070607751, 0.82309450455582256, 1.1311414665106574e-06, 0.45493338944441802, 0.54506547941411554, 3.5240316153704533e-06, 0.60512861536107743, 0.39486786060730722, 9.7525092748002545e-06, 0.72682822772674927, 0.27316201976397597, 2.0861086226669762e-05, 0.6859466903146072, 0.31403244859916624, 5.332729240920751e-05, 0.18829335186004104, 0.81165332084754971, 0.00025945729180097395, 0.47416247745093659, 0.52557806525726247, 0.00035725454767968995, 0.43592108982262995, 0.56372165562969045, 0.0010897843172447664, 0.38177825445219243, 0.6171319612305628, 0.0018591181203997816, 0.53394779913297052, 0.46419308274662957, 0.0045928219568831148, 0.57925391139005111, 0.41615326665306585, 0.031283424727716821, 0.74633416562103239, 0.22238240965125072, 0.10385850320845873, 0.85922689359944548, 0.036914603192095684, 0.11120289139689665, 0.77022201413565816, 0.11857509446744517, 0.043321716017784687, 0.83349499849331521, 0.12318328548890009, 0.21041134479899304, 0.69754328950803046, 0.092045365692976513, 0.2123196322567944, 0.7625253259234076, 0.0251550418197981, 0.3312304844007723, 0.64398429234572929, 0.024785223253498315, 0.3273376571679506, 0.67177221993330294, 0.00089012289874644697, 0.48962085422104135, 0.50979569087113141, 0.00058345490782740013, 0.46406754194472771, 0.53571004668683031, 0.00022241136844202664, 0.47346135887494539, 0.5263113326065374, 0.00022730851851715877, 0.56504995961065041, 0.43485471816581145, 9.5322223538082067e-05, 0.92115472651613373, 0.078767563857399928, 7.7709626466389205e-05, 0.88629770933571506, 0.11368043186533899, 2.185879894596154e-05, 0.83862783079609726, 0.16134912621625858, 2.3042987644162106e-05, 0.96631295876816758, 0.033681673271623441, 5.3679602088754854e-06, 0.838644851080249, 0.16135240086071348, 2.7480590375089156e-06, 0.98440741136075338, 0.015591207496872617, 1.3811423740147136e-06, 0.98108244712858661, 0.018916289515771071, 1.2633556422733213e-06, 1.4846190684672449e-10, 0.01214339852203244, 0.98785660132950559, 6.4556439373447552e-10, 0.02042954543601691, 0.97957045391841868, 2.7259985755764897e-09, 0.033928854284672787, 0.96607114298932861, 1.1142560576130246e-08, 0.055447698327182209, 0.94455229053025735, 1.0107812694009762e-07, 0.35119867166374696, 0.64880122725812617, 1.654000159869412e-07, 0.13820873971878719, 0.86179109488119687, 2.3223672356741317e-06, 0.35119789154988373, 0.64879978608288058, 2.4408824174268045e-06, 0.36573819315220912, 0.63425936596537358, 7.2097582121844249e-06, 0.063374404788280117, 0.93661838545350773, 3.0386781128102376e-05, 0.071776381334351963, 0.92819323188451985, 6.5650760385645707e-05, 0.08959463451860368, 0.91033971472101072, 0.00044744139811345109, 0.47407331930863594, 0.52547923929325069, 0.00067487507718573005, 0.38193683059140787, 0.61738829433140652, 0.045779702813143329, 0.56370292717454962, 0.39051737001230707, 0.026856114715831315, 0.74405154428792653, 0.22909234099624223, 0.035269922704626547, 0.81429749900443538, 0.15043257829093798, 0.048924812447079517, 0.76558794795279728, 0.18548723960012309, 0.079046798759930509, 0.87600002175553215, 0.04495317948453733, 0.096444017823476252, 0.8349974619163345, 0.068558520260189354, 0.19376178818706802, 0.76688445204086342, 0.039353759772068501, 0.18454410738301449, 0.81036436229132403, 0.005091530325661486, 0.28381399090869897, 0.68256051372628801, 0.033625495365013074, 0.32660290681419762, 0.64137363863754115, 0.032023454548261152, 0.36082178603061182, 0.61944782985149038, 0.01973038411789782, 0.55761760296151508, 0.44175649223864227, 0.00062590479984271999, 0.55656155484308267, 0.44309188757699419, 0.00034655757992309489, 0.47465596158444351, 0.5251025551443339, 0.00024148327122261258, 0.81529190442053157, 0.18454043976402412, 0.00016765581544424501, 0.89404820563457432, 0.10585342570845434, 9.8368656971371839e-05, 0.94785806600754141, 0.052104185674751766, 3.7748317706797921e-05, 0.83863502030838277, 0.16135050945383145, 1.4470237785757608e-05, 0.94231374952028113, 0.057674745437563832, 1.1505042155123695e-05, 0.9230730445097739, 0.076915559070109427, 1.139642011672311e-05, 0.98243351081584129, 0.017564541661950692, 1.9475222079740559e-06, 0.98569633242627486, 0.014302471968853316, 1.1956048718005995e-06, 1.36240635668259e-10, 0.0097385449777252827, 0.99026145488603401, 5.9340775954517885e-10, 0.01641098147654356, 0.9835890179300486, 2.5125697989399905e-09, 0.02732901032883624, 0.9726709871585939, 3.9446330598836948e-08, 0.17154075963781867, 0.82845920091585068, 1.6504487039990168e-07, 0.35119864919870936, 0.64880118575642032, 2.1344063721831815e-07, 0.1558616494389477, 0.84413813712041508, 2.2998920896228269e-06, 0.21300195540160005, 0.78699574470631029, 4.5359774978689756e-06, 0.097684860082922875, 0.90231060393957918, 1.499302138667569e-05, 0.40355941577024274, 0.59642559120837046, 3.0550408219921344e-05, 0.26516747696249077, 0.73480197262928926, 7.9715726522888093e-05, 0.19987691221010465, 0.8000433720633725, 0.00023722907701973362, 0.43101305814738139, 0.56874971277559883, 0.00066614456557445014, 0.51948652140013785, 0.4798473340342877, 0.046027174247046672, 0.49590637009413346, 0.45806645565881976, 0.057860713654857072, 0.66793220408137521, 0.27420708226376761, 0.028272367394338957, 0.75065193623726156, 0.22107569636839949, 0.036174255405063901, 0.72381951305071224, 0.24000623154422374, 0.074301679440815213, 0.7596978145870138, 0.16600050597217098, 0.10088294103963727, 0.84696143117085221, 0.052155627789510592, 0.15153295257912125, 0.79177271768957602, 0.056694329731302603, 0.16258775171205039, 0.78487693995163177, 0.052535308336317817, 0.30110694619777884, 0.69518335856616831, 0.0037096952360529539, 0.39164241310540737, 0.59625305434697995, 0.012104532547612675, 0.41870766798824777, 0.58001704689659284, 0.0012752851151593718, 0.48371653941491172, 0.51543918103731157, 0.00084427954777679742, 0.52190589673625576, 0.47763978531906004, 0.00045431794468420123, 0.49624968038443801, 0.50342281692885249, 0.00032750268670954889, 0.59544595576665271, 0.40433564200905803, 0.00021840222428923535, 0.89028496661588385, 0.1096241807748886, 9.0852609227485534e-05, 0.88760593168518243, 0.11234214495144711, 5.192336337035488e-05, 0.76460113373795835, 0.23537062864316166, 2.8237618879884617e-05, 0.9285295070485976, 0.071458360491606879, 1.2132459795584331e-05, 0.96713858224879545, 0.03285533272768458, 6.0850235199357034e-06, 0.9073905786752221, 0.092596587895467833, 1.283342930992485e-05, 0.96023262996968806, 0.039763215133852226, 4.1548964598639039e-06, 1.249460449550858e-10, 0.0078166157623807755, 0.99218338411267315, 5.4493784644288464e-10, 0.013189767582097526, 0.98681023187296457, 4.1046417517442006e-09, 0.039074179331734717, 0.96092581656362352, 5.7494043326152375e-08, 0.21882271798998215, 0.78117722451597449, 2.5511722740456355e-07, 0.35119861756541404, 0.64880112731735862, 4.599285302560988e-07, 0.29394179850740626, 0.70605774156406342, 2.2129124459681669e-06, 0.26517499137431694, 0.73482279571323705, 3.8534353451592905e-06, 0.10737338509950629, 0.89262276146514852, 1.7683866271391761e-05, 0.43110770745363519, 0.56887460868009343, 3.5597241834713196e-05, 0.19988573117960604, 0.80007867157855916, 6.5297850503057936e-05, 0.28245446610122588, 0.71748023604827116, 0.00025963522600652424, 0.43596365935187936, 0.56377670542211411, 0.00055629085636108022, 0.45216340899019891, 0.54728030015344009, 0.0011350170661250966, 0.5137607624461642, 0.48510422048771068, 0.012020945557803323, 0.62907855606863516, 0.35890049837356147, 0.0069552027468725254, 0.68284458437285678, 0.31020021288027061, 0.055921114734906352, 0.76235421097882172, 0.18172467428627198, 0.070118303391193959, 0.82022372185086045, 0.10965797475794549, 0.10214531120142367, 0.7953445321949375, 0.1025101566036388, 0.15660989240593035, 0.78964544141622484, 0.053744666177844874, 0.21502193493428201, 0.75718693435163997, 0.027791130714078106, 0.31085898742543339, 0.65152769006198941, 0.037613322512577166, 0.36271872557927254, 0.62807257947832196, 0.0092086949424054591, 0.46811728543474374, 0.53037785806420867, 0.0015048565010475092, 0.50987561748906873, 0.46555137209677477, 0.024573010414156545, 0.63361890611508076, 0.36571833095040768, 0.00066276293451154661, 0.66071512117548392, 0.33898487843992936, 0.00030000038458678053, 0.88366574495923411, 0.11610730419318148, 0.00022695084758433308, 0.86392095832233629, 0.13599444881463338, 8.4592863030316664e-05, 0.88628043827939951, 0.11367821660389803, 4.1345116702401145e-05, 0.93970992205548809, 0.060265658278344798, 2.4419666167040562e-05, 0.96209674471090179, 0.037891461227038382, 1.1794062059785199e-05, 0.94788907403898592, 0.052105890200234789, 5.0357607793574558e-06, 0.98065622512876816, 0.019340428830497556, 3.3460407343359303e-06, 0.94694421969391585, 0.053048860846764551, 6.9194593196676287e-06, 1.1452663474520966e-10, 0.0062799794920764271, 0.99372002039339691, 2.853257157209107e-09, 0.060532214515358576, 0.93946778263138431, 1.6214598025741835e-08, 0.13529329344145699, 0.86470669034394498, 2.1189337446152076e-08, 0.21300244077085834, 0.78699753803980421, 7.3955721368779058e-08, 0.10027259913410227, 0.89972732691017632, 2.7127367296178246e-07, 0.051350744882100251, 0.94864898384422691, 1.1373150305372755e-06, 0.13970426155079299, 0.86029460113417644, 5.6386873784185915e-06, 0.10737319341021356, 0.89262116790240809, 9.1443181671856631e-06, 0.1958725816555755, 0.80411827402625724, 3.0780835544700696e-05, 0.23623548224942459, 0.76373373691503066, 0.018866399425582821, 0.20327052027286135, 0.77786308030155582, 0.00016186564366182682, 0.39934577771479773, 0.60049235664154044, 0.00055400522477567474, 0.50935418305662183, 0.49009181171860233, 0.0011543244279179205, 0.60305481615717316, 0.39579085941490899, 0.0093830174487906804, 0.65711480876058237, 0.33350217379062697, 0.02712460037708728, 0.68364712401760941, 0.28922827560530329, 0.071627369982289954, 0.76713459519396177, 0.16123803482374829, 0.039927699342942116, 0.83843027544955162, 0.12164202520750628, 0.14656321780515202, 0.74588950576415913, 0.10754727643068876, 0.16376035719753274, 0.78848118510568288, 0.047758457696784468, 0.19493473739530479, 0.77867060244504371, 0.026394660159651598, 0.36120498883352231, 0.61929368977117705, 0.019501321395300596, 0.33948133935494107, 0.63170375299979131, 0.028814907645267729, 0.51829821941476095, 0.47954661106164709, 0.0021551695235920544, 0.58059215907068418, 0.40958113371002164, 0.0098267072192940765, 0.71672312276462669, 0.28251674384286046, 0.00076013339251280619, 0.77942164030452332, 0.22019157835612072, 0.00038678133935605036, 0.86461414507544643, 0.13515840341285848, 0.00022745151169498992, 0.87144894223037694, 0.12842333294968455, 0.0001277248199384536, 0.92979811341202045, 0.070152932060478179, 4.895452750144501e-05, 0.95126278805944253, 0.048711574494744239, 2.563744581323103e-05, 0.97227436758017605, 0.02771292781793892, 1.2704601884907007e-05, 0.98237127145535186, 0.01762364926357245, 5.0792810756628159e-06, 0.9883308747746975, 0.011666609041297193, 2.51618400519803e-06, 0.98235119700233953, 0.017645933714761562, 2.8692828988985315e-06, 6.150922647499844e-10, 0.02960697961527442, 0.97039301976963332, 3.901427491963202e-09, 0.072655969185578692, 0.92734402691299378, 2.1823351141247776e-08, 0.15984300523259043, 0.84015697294405844, 1.6425441738108356e-08, 0.11919570971067156, 0.88080427386388671, 9.7614611940378502e-08, 0.26517555229964312, 0.73482435008574487, 5.701319637312147e-07, 0.28035220426049173, 0.71964722560754446, 9.3319247507560906e-07, 0.082751612748402772, 0.91724745405912222, 3.5530676313383773e-06, 0.097684956098771203, 0.90231149083359752, 1.0912076402876782e-05, 0.16873535134981291, 0.8312537365737841, 2.3104211625557428e-05, 0.19200984631769741, 0.8079670494706771, 8.8396020164666851e-05, 0.25937649579303113, 0.74053510818680424, 0.00022977833115246573, 0.31406919157580399, 0.68570103009304362, 0.00051050879418069637, 0.45177723595921199, 0.54771225524660727, 0.013015917668960585, 0.50585204409539097, 0.48113203823564832, 0.026157531993968221, 0.63914270022932174, 0.33469976777671007, 0.016468280264379884, 0.71817991354020883, 0.26535180619541132, 0.061697392653401247, 0.76286893962150992, 0.17543366772508873, 0.062288225164186743, 0.84915493858483237, 0.088556836250980861, 0.080077719163564112, 0.86570864472610753, 0.054213636110328381, 0.125712880508489, 0.82960477806789368, 0.04468234142361735, 0.23580485020524711, 0.72863832476703816, 0.035556825027714609, 0.27782924455626395, 0.70394011219599584, 0.01823064324774025, 0.36138756245183318, 0.62576757838464525, 0.012844859163521632, 0.55509185834700769, 0.44218026106753838, 0.0027278805854539867, 0.59550747330712761, 0.39558043292726031, 0.0089120937656120107, 0.68655511497381561, 0.31247299230750236, 0.00097189271868207243, 0.7954393293525992, 0.20405307501303099, 0.00050759563436990134, 0.90561026643893916, 0.094181793366656483, 0.00020794019440424204, 0.93326029567241164, 0.06663937315513993, 0.00010033117244839944, 0.97155646884745128, 0.028393540482592489, 4.9990669956191124e-05, 0.98709918457349344, 0.01287555978671461, 2.5255639792054125e-05, 0.96891974492996114, 0.031069474141213794, 1.0780928825086651e-05, 0.96761573797445677, 0.032376688412043095, 7.5736135001059529e-06, 0.90094551641916587, 0.099050763302711287, 3.7202781226453157e-06, 0.99133691074756192, 0.0086613359312496859, 1.7533211885125555e-06, 9.6097254311358254e-11, 0.0040664325175955333, 0.99593356738630712, 4.2020893703699151e-10, 0.0068795779582577097, 0.99312042162153336, 3.9879837830057039e-09, 0.063374861452971831, 0.93662513455904439, 3.0080683037737539e-08, 0.077439687097355894, 0.92256028282196101, 7.7186008207421418e-08, 0.039974282905150094, 0.96002563990884171, 3.6885786560369713e-07, 0.076875499296983479, 0.92312413184515085, 7.7055439693921474e-07, 0.069475346224996848, 0.9305238832206062, 2.3788787821454687e-06, 0.12468665514378201, 0.87531096597743596, 6.8106732164348888e-06, 0.1427741686108622, 0.85721902071592138, 2.5733347849939136e-05, 0.16308427171890702, 0.83688999493324312, 6.6605014300140638e-05, 0.31161863783095967, 0.68831475715474022, 0.00018680201424775851, 0.38941372835540933, 0.61039946963034297, 0.00061803537808386767, 0.55393249902621355, 0.44544946559570259, 0.0054109434599216352, 0.5330160712634614, 0.46157298527661689, 0.0097375594561176539, 0.68569116673948893, 0.30457127380439342, 0.0039141582307427852, 0.72897239469063568, 0.2671134470786215, 0.028926609312672959, 0.77915329683199297, 0.19192009385533398, 0.053433332039870884, 0.8452765375847382, 0.10129013037539092, 0.064694683146133941, 0.85436453433854931, 0.080940782515316792, 0.13413179047744975, 0.81527466221209133, 0.050593547310458876, 0.17498194500100919, 0.79836342861812759, 0.026654626380863269, 0.30176405042849586, 0.68253987551331341, 0.015696074058190668, 0.44444174379002854, 0.53878282121133103, 0.016775434998640436, 0.56975274670981035, 0.41169688556828721, 0.018550367721902401, 0.62105948045207948, 0.37692692092350022, 0.0020135986244202821, 0.73838910877870134, 0.26044982141749318, 0.0011610698038053676, 0.84383025163554393, 0.15567813415622619, 0.00049161420822986111, 0.89605580056509737, 0.10369808792428638, 0.00024611151061605928, 0.94064348769367923, 0.059228702074037368, 0.00012781023228344892, 0.97198351665198623, 0.02796355948371226, 5.2923864301402124e-05, 0.98155001689620114, 0.018424084485191394, 2.589861860750302e-05, 0.98846266666253302, 0.01152586885723272, 1.1464480234292309e-05, 0.98167521430374161, 0.018316614933378158, 8.1707628801724633e-06, 0.99179140859534576, 0.008205852149880663, 2.7392547735057506e-06, 0.99230972099150416, 0.0076883440461310909, 1.9349623647716529e-06, 9.9365586388011134e-10, 0.0370197924262224, 0.96298020658012173, 3.263280530733794e-09, 0.047037725201323412, 0.95296227153539603, 9.9735532843536177e-09, 0.056541359702757379, 0.94345863032368926, 1.3430512891640197e-08, 0.059870119660389826, 0.94012986690909728, 5.3626335247782195e-08, 0.049400900691735312, 0.95059904568192943, 1.8251676122974967e-07, 0.12256942989678073, 0.87743038758645808, 5.2922450677873055e-07, 0.076875486968713325, 0.92312398380677985, 1.8404048442577517e-06, 0.12432874015114775, 0.875669419444008, 6.2614999735686165e-06, 0.14538888263629424, 0.85460485586373214, 2.1023550747395797e-05, 0.18484238552335236, 0.81513659092590041, 0.0063906682531892755, 0.22131768840776816, 0.77229164333904254, 0.00017232974892336268, 0.31131130515430244, 0.68851636509677416, 0.0084904521815259079, 0.49659432357304756, 0.49491522424542644, 0.013467487739868876, 0.507855321126509, 0.47867719113362212, 0.011177896815878621, 0.67098380378005851, 0.31783829940406289, 0.018719412343690768, 0.71070604571793838, 0.27057454193837094, 0.029818801988092305, 0.81987452935681904, 0.15030666865508854, 0.043634440046455995, 0.85188345323689274, 0.10448210671665126, 0.071265570563405545, 0.86336657885860391, 0.065367850577990577, 0.090578007986616166, 0.8572150282070562, 0.052206963806327632, 0.17442474222818516, 0.76673152015876533, 0.058843737613049507, 0.33994821113117157, 0.64376032368387026, 0.016291465184958123, 0.41266805186909161, 0.56313808378591601, 0.024193864344992419, 0.56348149705322992, 0.43025977856840303, 0.00625872437836712, 0.68925181451467832, 0.3082279318432869, 0.0025202536420348394, 0.80676473084094369, 0.19209395330517381, 0.0011413158538825963, 0.88637676130418119, 0.1130178461429087, 0.00060539255291009798, 0.927608488602367, 0.072146921450505927, 0.00024458994712709065, 0.93409735164382557, 0.065778820831101786, 0.00012382752507264516, 0.95955613130039441, 0.040384600727647969, 5.9267971957485057e-05, 0.97011376253539017, 0.029863451160091054, 2.2786304518811963e-05, 0.97785636843210832, 0.022133673016754722, 9.9585511369828196e-06, 0.98883089378959566, 0.011162923574077121, 6.1826363272136429e-06, 0.99132115144217314, 0.0086752529754306317, 3.5955823961140894e-06, 0.99391937637817918, 0.0060787241602671032, 1.8994615537603742e-06, 2.1883111168533595e-10, 0.097685303159883413, 0.90231469662128561, 1.9619342309380787e-09, 0.024935516727982106, 0.97506448131008361, 3.5286318780874051e-09, 0.076875527381861097, 0.92312446908950707, 1.1174111479027537e-08, 0.021193277834474996, 0.97880671099141348, 3.9014624280688761e-08, 0.027700502337816992, 0.97229945864755873, 1.9855753294600787e-07, 0.056732691047394423, 0.94326711039507272, 5.5649301216555306e-07, 0.094581880780753844, 0.90541756272623397, 2.1048608818736715e-06, 0.10587348637527356, 0.89412440876384458, 6.3394180477664409e-06, 0.1480302505364014, 0.85196341004555076, 1.7495901445102562e-05, 0.17312172990195959, 0.82686077419659532, 0.0049196783937341055, 0.2536698512655457, 0.74141047034072016, 0.0045293250465165205, 0.34508495218051799, 0.65038572277296547, 0.00048661010877909847, 0.45371542150162869, 0.54579796838959216, 0.0071844113231145897, 0.46167355915152009, 0.53114202952536527, 0.005889581720519464, 0.60056175055146765, 0.39354866772801289, 0.010782119472985954, 0.70945947440517587, 0.27975840612183822, 0.01642973426724444, 0.82006011621068664, 0.16351014952206883, 0.041788042636438386, 0.85815102554979483, 0.10006093181376677, 0.06441789360108971, 0.85876918013974235, 0.076812926259168024, 0.1083871738371005, 0.82396050886044858, 0.067652317302450873, 0.24327610456501764, 0.71505255245120514, 0.041671342983777108, 0.33455571864246691, 0.62408368863533703, 0.041360592722195916, 0.4376036981926188, 0.55108443115460148, 0.0113118706527797, 0.61343631730047987, 0.36718281992332857, 0.019380862776191631, 0.74969640877153532, 0.24368332139839324, 0.0066202698300714558, 0.85119990263626566, 0.14753869354684521, 0.0012614038168891181, 0.91305101156710244, 0.086394045069231262, 0.00055494336366611167, 0.94159826524719181, 0.058182865450185708, 0.00021886930262248174, 0.96696107098195949, 0.032927434102496211, 0.00011149491554430661, 0.95834583136945961, 0.041604247394788012, 4.9921235752383312e-05, 0.96462998331574712, 0.035350763692445421, 1.9252991807457744e-05, 0.98934203780505781, 0.010648728623461537, 9.2335714806298587e-06, 0.98241227853886326, 0.017582582526883196, 5.1389342535582088e-06, 0.9931869095510869, 0.0068095909833367435, 3.4994655764008678e-06, 0.99244970892018214, 0.0075473668794043521, 2.9242004134331896e-06, 3.339859439043867e-10, 0.0096885070803255629, 0.9903114925856884, 6.6121992840305402e-10, 0.039974285964173864, 0.96002571337460618, 5.7939805196932679e-09, 0.056732701983391663, 0.94326729222262784, 1.293760096272363e-08, 0.022056853662269983, 0.97794313340012906, 3.0749706047563064e-08, 0.0392496563128246, 0.96075031293746938, 1.2920621726186205e-07, 0.04977673026423924, 0.95022314052954349, 4.0424534540435191e-07, 0.056144245701243024, 0.94385535005341159, 1.3477013411494762e-06, 0.091401519396331718, 0.90859713290232713, 4.0981074768474016e-06, 0.089326336031237741, 0.91066956586128545, 1.8237107152639052e-05, 0.1740783281776366, 0.82590343471521077, 0.0038803579363370817, 0.18514876347033832, 0.81097087859332462, 0.00013533082420921915, 0.31868429584681496, 0.68118037332897585, 0.0065781577655604339, 0.39487189693243979, 0.5985499453019999, 0.012532913921255872, 0.50637085192594344, 0.48109623415280062, 0.01536184158953059, 0.53909519798637417, 0.4455429604240953, 0.0051958393538176079, 0.66977335234010082, 0.32503080830608172, 0.015235236726309416, 0.78053866575827613, 0.2042260975154144, 0.038499342715402084, 0.82466179329259126, 0.1368388639920067, 0.08425963752955834, 0.80963694495948102, 0.10610341751096065, 0.12191915369695405, 0.79141298491078516, 0.086667861392260737, 0.22601809958995775, 0.73642314957685306, 0.037558750833189151, 0.32756897296451915, 0.64823811415012966, 0.02419291288535114, 0.44785970630845934, 0.5258832162877094, 0.026257077403831305, 0.61337403998392526, 0.38035221696858235, 0.0062737430474923347, 0.79559588376442836, 0.20095333978995925, 0.0034507764456123725, 0.84284029889699708, 0.15540294105933913, 0.0017567600436638351, 0.93424840284558153, 0.065115603521040649, 0.00063599363337777368, 0.94134185197668685, 0.058422887925821496, 0.00023526009749169207, 0.9666607629679429, 0.033233937014115193, 0.00010530001794187947, 0.98350184818462183, 0.016454121011921057, 4.403080345709061e-05, 0.98772145143229284, 0.012260272830276267, 1.8275737430953548e-05, 0.99106996043374562, 0.0089206302010749125, 9.4093651794501396e-06, 0.99271879949982789, 0.0072760267255096494, 5.1737746624565255e-06, 0.99500086432646317, 0.0049959565442079202, 3.1791293289832205e-06, 0.99413373450184239, 0.0058634524709917264, 2.8130271657988598e-06, 1.4890074595651799e-10, 0.056732702303652287, 0.94326729754744687, 5.5164699221405322e-10, 0.0054754415857801572, 0.99452455786257288, 1.6855214298597994e-09, 0.015671207920404839, 0.98432879039407373, 6.3441770089935905e-09, 0.051350758486430906, 0.94864923516939204, 2.4237545120856208e-08, 0.036720221326562538, 0.96327975443589242, 9.9809191992937716e-08, 0.066937067907946388, 0.93306283228286169, 3.5070831958991804e-07, 0.060125873813705412, 0.93987377547797502, 1.4107925778350402e-06, 0.06489431342917816, 0.93510427577824407, 0.0042461469762375631, 0.11437218166870533, 0.88138167135505718, 1.469222381146675e-05, 0.17250839273092008, 0.82747691504526844, 4.4989382244150631e-05, 0.17401496905303238, 0.82594004156472345, 0.00012918933912872213, 0.27215846728718202, 0.7277123433736894, 0.0031919472999223496, 0.36601536672116297, 0.63079268597891469, 0.0088518902292733757, 0.39965455862973115, 0.59149355114099544, 0.0086857091673266263, 0.53029596667999723, 0.46101832415267618, 0.0081001904119084676, 0.62337957179697701, 0.36852023779111459, 0.01796662965674432, 0.72294789834748074, 0.25908547199577486, 0.03036864014526687, 0.77337723160873328, 0.19625412824599966, 0.045280776900217222, 0.80584766031253818, 0.14887156278724464, 0.1079457271478957, 0.8020894941362412, 0.089964778715863017, 0.23833738414678105, 0.71604810718646128, 0.045614508666757772, 0.32946417908479775, 0.64924454644743579, 0.021291274467766488, 0.53905579612338017, 0.44198968296084262, 0.018954520915777207, 0.59742330889998618, 0.38780499192689893, 0.014771699173114914, 0.79456694214993939, 0.19966950131706829, 0.0057635565329923139, 0.88375940901024241, 0.11098341778069606, 0.0052571732090615081, 0.903451493353706, 0.0959012287837505, 0.00064727786254343048, 0.96367159898140298, 0.036067038447164058, 0.00026136257143289087, 0.98275802786434341, 0.017140331617144153, 0.00010164051851241006, 0.98577611361797401, 0.014180183366550192, 4.3703015475690965e-05, 0.98791129714047454, 0.012067984414869278, 2.0718444656275322e-05, 0.99412999128844415, 0.0058617103010831116, 8.2984104727447807e-06, 0.99377704428800751, 0.0062178635519437699, 5.0921600487546242e-06, 0.99507421822732978, 0.0049219087753953842, 3.8729972747183382e-06, 0.99389431209247481, 0.006102067798638167, 3.6201088870785132e-06, 1.3436663246182434e-10, 0.051350758805309378, 0.94864924106032411, 3.0245333555268103e-10, 0.034830021882150085, 0.9651699778153966, 1.6293431669884804e-09, 0.045584883390177723, 0.95441511498047915, 5.7935011524760405e-09, 0.0094072243189571164, 0.99059276988754164, 2.2920191518573447e-08, 0.034830021094373775, 0.96516995598543476, 7.1552742834805665e-08, 0.021878552531952946, 0.97812137591530424, 2.4066169516794339e-07, 0.041384826584195365, 0.95861493275410947, 9.1208389540814795e-07, 0.098191497692471347, 0.90180759022363333, 3.7366780764952134e-06, 0.097684938162729204, 0.90231132515919432, 1.3322018292023556e-05, 0.11010237579519749, 0.88988430218651049, 4.4816354764194115e-05, 0.18457279033563193, 0.81538239330960383, 0.00012953164247918807, 0.22809125560451687, 0.77177921275300398, 0.00043620745611727978, 0.3562993175278219, 0.64326447501606077, 0.0030147186049377028, 0.37121379078132843, 0.62577149061373394, 0.0031459523393467916, 0.54958558651158618, 0.4472684611490671, 0.0062650069699376719, 0.50384295133666768, 0.48989204169339479, 0.016546717599393645, 0.71056431338426873, 0.27288896901633775, 0.053285192434476346, 0.63106070864449748, 0.3156540989210263, 0.065835201188771772, 0.79376529836335186, 0.14039950044787641, 0.13616974495645434, 0.81543121262958773, 0.048399042413957975, 0.2175380165935713, 0.70686029889198354, 0.075601684514445128, 0.38976360615743039, 0.56761044406685002, 0.042625949775719561, 0.48429319255322578, 0.49849349271620019, 0.017213314730574213, 0.65577844118514184, 0.33645207752045642, 0.0077694812944017625, 0.81328991779179638, 0.18213927858367787, 0.0045708036245257289, 0.90155922851848225, 0.096272735785017216, 0.0021680356965005066, 0.91640021854328324, 0.082813337815603849, 0.00078644364111294686, 0.9700403361305322, 0.029691524984771501, 0.0002681388846962445, 0.98137240893801769, 0.018521136275595661, 0.00010645478638659134, 0.97974481001879721, 0.020214428991367224, 4.07609898355343e-05, 0.98917056485208699, 0.0108132405303822, 1.6194617530872471e-05, 0.98619159540055856, 0.013799264712834254, 9.1398866072316556e-06, 0.99671927679643746, 0.0032764685165851859, 4.2546869772530814e-06, 0.99595685930891742, 0.004039215597667763, 3.9250934147206801e-06, 0.96762031774846635, 0.032376841652539595, 2.840598993960128e-06, 7.2097396335411564e-11, 0.029194492376581511, 0.97080550755132111, 4.0179039697768676e-10, 0.049025365025077261, 0.95097463457313236, 9.5066065405223261e-10, 0.028181215348281424, 0.97181878370105801, 3.7831465448186402e-09, 0.02603511334043445, 0.97396488287641891, 1.2897453100992321e-08, 0.033226557647600172, 0.96677342945494671, 5.5540205241171822e-08, 0.035987832474261745, 0.96401211198553305, 2.4998164072527338e-07, 0.042044199734704649, 0.95795555028365453, 8.1670004618803465e-07, 0.055895756937254425, 0.94410342636269939, 3.5557183280460435e-06, 0.095593906464581158, 0.90440253781709079, 1.185475439547221e-05, 0.098620850863316845, 0.9013672943822878, 0.0032133768311381028, 0.16074310494565341, 0.83604351822320844, 0.0032911711794620145, 0.21529142647254981, 0.78141740234798807, 0.0067920595635109242, 0.29794333851398391, 0.69526460192250528, 0.0034341497501990908, 0.39114545017058466, 0.60542040007921616, 0.0034709908480684542, 0.44876614745630133, 0.54776286169563015, 0.0038885669818436775, 0.59253241363734921, 0.40357901938080715, 0.026798279846251247, 0.6874529842694449, 0.28574873588430377, 0.046865210150335936, 0.74658326805472752, 0.20655152179493647, 0.050973212054560915, 0.73820502975669444, 0.21082175818874463, 0.11582050725305687, 0.7975136432918819, 0.086665849455061283, 0.23845744267710173, 0.73405434168222672, 0.027488215640671592, 0.38642095964740025, 0.58414770015039585, 0.02943134020220398, 0.59032075382646843, 0.39956750147623415, 0.010111744697297306, 0.7188743196947609, 0.27129834517111084, 0.009827335134128222, 0.8880468278643705, 0.10514287521247102, 0.006810296923158439, 0.89523876139976111, 0.10220887125492693, 0.0025523673453119598, 0.93299311307193045, 0.066093774773800032, 0.00091311215426958592, 0.96948075560435842, 0.030215852435740143, 0.00030339195990135022, 0.98743151006175234, 0.012457602960085305, 0.00011088697816232922, 0.98863307660542143, 0.011327620194609483, 3.9303199969077409e-05, 0.99192771052491746, 0.0080567176245565537, 1.5571850525886394e-05, 0.9915449244966672, 0.0084473735206991758, 7.701982633683089e-06, 0.98896457303458574, 0.01103034209933974, 5.0848660745897837e-06, 0.99739916086639624, 0.0025977259776725765, 3.113155931097272e-06, 0.9959521110731242, 0.0040442348735576072, 3.6540533181947174e-06, 4.4199695987302964e-11, 0.00079135070310652029, 0.9992086492526937, 2.2304041455284082e-10, 0.015230278483834668, 0.9847697212931249, 6.8854433767571221e-10, 0.015230278476744913, 0.9847697208347107, 2.8192807958977872e-09, 0.027144862577934682, 0.9728551346027845, 1.0778809988163945e-08, 0.031080299962911805, 0.96891968925827832, 4.8193427306082821e-08, 0.031456581535049252, 0.96854337027152348, 1.807015419342082e-07, 0.031182021533312645, 0.96881779776514543, 7.5681741952125855e-07, 0.071778508130552518, 0.92822073505202796, 2.5644348903010699e-06, 0.084181389562409448, 0.91581604600270017, 1.0818550821281452e-05, 0.10868723168293189, 0.89130194976624688, 0.0035761069920280547, 0.13210190469280431, 0.8643219883151676, 0.00012820012897510902, 0.20853946141899798, 0.791332338452027, 0.00039227128709937755, 0.27635328768831097, 0.72325444102458969, 0.0040385455059335235, 0.33566501172958918, 0.66029644276447741, 0.0036193142363509698, 0.45968037923984117, 0.53670030652380785, 0.019002973720688467, 0.5081988933496111, 0.4727981329297003, 0.016204891781588775, 0.71500761241990485, 0.26878749579850642, 0.042688688205912047, 0.71454471112403395, 0.2427666006700539, 0.1382598686175068, 0.77437668498850887, 0.087363446393984384, 0.12441612787888208, 0.73407528189227178, 0.14150859022884615, 0.31785277970529957, 0.61153787636852763, 0.070609343926172824, 0.45274998924439597, 0.49360944632781095, 0.053640564427793115, 0.55663135865760371, 0.40947694225532671, 0.033891699087069516, 0.79868554174638928, 0.18237089641179172, 0.018943561841819025, 0.84486569202216188, 0.14752370666445122, 0.0076106013133868094, 0.91693074199889102, 0.080284369619351315, 0.0027848883817575515, 0.93265969205335908, 0.066400902707302881, 0.00093940523933805028, 0.95821883063149993, 0.041428769783705847, 0.00035239958479424047, 0.9774688774728677, 0.022424697623625742, 0.00010642490350651342, 0.98300434716428664, 0.016952531015567419, 4.3121820145886123e-05, 0.98810034637639721, 0.01188169543503511, 1.7958188567716007e-05, 0.98737955654446385, 0.012612013242308748, 8.430213227496385e-06, 0.99709656907768007, 0.0028977155863713871, 5.7153359486050302e-06, 0.98712043664391691, 0.012875836995233881, 3.7263608491763499e-06, 0.9970893397129047, 0.0029074249700652114, 3.2353170301639181e-06, 4.3888955063189543e-11, 0.00069907988458812315, 0.99930092007152294, 1.1754043539367822e-10, 0.000724357199774671, 0.99927564268268498, 6.1289453853422841e-10, 0.0080144137737966602, 0.99198558561330874, 2.4333146707723345e-09, 0.02770050335113769, 0.97229949421554762, 8.8905864030767153e-09, 0.034098665837255612, 0.965901325272158, 4.0007630845511952e-08, 0.024013869669660209, 0.975986090322709, 1.7184897608261227e-07, 0.063748025836775649, 0.93625180231424832, 6.9712268733252152e-07, 0.039086123597828377, 0.96091317927948428, 2.5831802294727531e-06, 0.05848385440586986, 0.94151356241390061, 1.0526998699058674e-05, 0.10979251231594027, 0.89019696068536069, 3.4459274098236631e-05, 0.15284915124105034, 0.84711638948485146, 0.0044856204022698971, 0.21748054175923309, 0.77803383783849689, 0.00038571747310749794, 0.25769559343018633, 0.74191868909670622, 0.011963826053637832, 0.40972025970841741, 0.57831591423794482, 0.011437298748728635, 0.43569843754256626, 0.55286426370870512, 0.0089947583370318662, 0.6184467122975541, 0.37255852936541406, 0.035309177334161806, 0.60325080739663639, 0.36144001526920166, 0.040297966404177196, 0.63886293029668306, 0.32083910329913978, 0.10125893136242717, 0.71551602800859582, 0.18322504062897702, 0.223448691256009, 0.58317905835789197, 0.19337225038609901, 0.34548155099428157, 0.58009718165983104, 0.07442126734588736, 0.43013936485315829, 0.53680438414769005, 0.033056250999151639, 0.61905110162159371, 0.33782031038761423, 0.043128587990792062, 0.75968307867829277, 0.21924063889519718, 0.021076282426509937, 0.85766715474075783, 0.13445440720263788, 0.0078784380566042384, 0.90288678811449841, 0.093749511328208177, 0.0033637005572933125, 0.96811646495403314, 0.030678495898637168, 0.0012050391473296292, 0.95089363517350589, 0.048786315463027113, 0.0003200493634669237, 0.97573817535568441, 0.024145168815375446, 0.00011665582894015838, 0.99367518240783481, 0.0062853602086005173, 3.9457383564631756e-05, 0.99114421679596987, 0.0088351856626138828, 2.0597541416095451e-05, 0.98326681111255509, 0.016722843872560747, 1.03450148842026e-05, 0.99220181813099639, 0.0077916831060220303, 6.4987629815080154e-06, 0.98241270058943386, 0.017582590080472613, 4.7093300936084676e-06, 0.99712459543069476, 0.0028714745167780892, 3.9300525271690069e-06, 2.7378520631881889e-11, 0.018323631138197263, 0.98167636883442433, 1.2052212251421604e-10, 0.012152853843749001, 0.98784714603572887, 4.7293100527401347e-10, 0.015447597425960255, 0.98455240210110873, 2.3770398395229041e-09, 0.013518639561767774, 0.9864813580611923, 7.8637346462345538e-09, 0.033483469953700086, 0.96651652218256523, 3.5647561754668079e-08, 0.026723682033058294, 0.9732762823193799, 1.4844428637083042e-07, 0.034387486461628987, 0.96561236509408466, 6.0889521621561119e-07, 0.042638615750026365, 0.95736077535475739, 2.1224683916353647e-06, 0.097169346848809554, 0.90282853068279878, 9.4610359789014307e-06, 0.051350272980832536, 0.94864026598318862, 0.0049279203459382456, 0.14032102283869916, 0.85475105681536268, 0.00012291526472504904, 0.15959566862730168, 0.84028141610797324, 0.00043392494435007972, 0.23511412741233956, 0.76445194764331037, 0.011874908686974274, 0.33813438856531086, 0.64999070274771487, 0.0072754448510199445, 0.40313396290282921, 0.58959059224615096, 0.021887809915287919, 0.58394471380190371, 0.39416747628280835, 0.032295125140880981, 0.49707772923103155, 0.47062714562808733, 0.074250520848829632, 0.66937988124340253, 0.25636959790776775, 0.1099557710066984, 0.68905229273932522, 0.20099193625397641, 0.19159918058635889, 0.71760025897447011, 0.090800560439171021, 0.42917814742742499, 0.55048271740748989, 0.020339135165085273, 0.51832997904470879, 0.4593390027965169, 0.02233101815877454, 0.57265786634794857, 0.40591679127907632, 0.021425342372975154, 0.82240898436026277, 0.15277251440782993, 0.024818501231907313, 0.86864798604493454, 0.12154538284049969, 0.0098066311145658461, 0.93836792759720689, 0.057772409501247034, 0.0038596629015461925, 0.96660059357272565, 0.032110039952553335, 0.0012893664747210358, 0.96312795810933927, 0.036452955712746496, 0.00041908617791427548, 0.97942566613234527, 0.020450651737463313, 0.00012368213019137324, 0.9917480209001196, 0.0082068355725797709, 4.5143527300700856e-05, 0.99655519962274208, 0.0034238180679699425, 2.0982309288017537e-05, 0.99722361082503641, 0.0027652958623038217, 1.1093312659843271e-05, 0.99787731128663626, 0.0021163825452772747, 6.3061680865358122e-06, 0.99775001773541105, 0.0022449764528887466, 5.0058117001726669e-06, 0.9934580702019119, 0.0065309506133623433, 1.0979184725732311e-05, 1.7511407197797245e-11, 0.00022175643672111715, 0.9997782435457675, 6.9504524600977934e-11, 0.009246530576511024, 0.99075346935398434, 4.7326191949812714e-10, 0.020394776296029635, 0.97960522323070853, 1.6481905805489844e-09, 0.006183412077557863, 0.99381658627425162, 7.4661109877518518e-09, 0.031456582816191458, 0.96854340971769759, 3.3062905832505243e-08, 0.042044208854881547, 0.95795575808221256, 1.6292748863877625e-07, 0.024897488666784786, 0.97510234840572663, 5.5029117087644341e-07, 0.039107851461809104, 0.96089159824701997, 2.7196647548860221e-06, 0.062809030530917118, 0.93718824980432802, 1.1264414578094582e-05, 0.086039056972500028, 0.91394967861292198, 3.2859306410116049e-05, 0.10422421809251206, 0.8957429226010778, 0.0075239783960994455, 0.17950087585610025, 0.81297514574780028, 0.00041462532727106041, 0.25490163266672039, 0.7446837420060084, 0.0097942997080261596, 0.29396480311563605, 0.69624089717633775, 0.020116220796997084, 0.37928862346267783, 0.60059515574032507, 0.029684742810971144, 0.54827932642773602, 0.42203593076129275, 0.045373111520344275, 0.67509149981043781, 0.27953538866921779, 0.056440911995126582, 0.62258486931532042, 0.32097421868955284, 0.067054063161592389, 0.77405834410019403, 0.15888759273821346, 0.16059537517490682, 0.74155202126060504, 0.097852603564488147, 0.27688185792734227, 0.59190136025604712, 0.13121678181661051, 0.4881873237408641, 0.45397359461573883, 0.057839081643396968, 0.7289080071501608, 0.2445199924432194, 0.026572000406619858, 0.81789665319636884, 0.1573605185546515, 0.024742828248979696, 0.78582066612439938, 0.20158561113891454, 0.012593722736686163, 0.96249124557469046, 0.032678827686928716, 0.004829926738380951, 0.95445948645458389, 0.04407233773830041, 0.0014681758071157095, 0.97946770234799052, 0.02010093181615474, 0.00043136583585478948, 0.98130479288638905, 0.018532484487115006, 0.00016272262649596838, 0.98162352424793353, 0.018313794767152655, 6.2680984913820494e-05, 0.98575174919864261, 0.014224144867249884, 2.4105934107445664e-05, 0.99652195739581984, 0.0034610116781912952, 1.70309259889367e-05, 0.97276885264424784, 0.027222894546339853, 8.2528094122116463e-06, 0.99695740758510432, 0.0030342932228727597, 8.2991920229771441e-06, 0.99446164937779757, 0.0055269535040442571, 1.1397118157986199e-05, 1.4187068837724371e-11, 0.00016054974935304818, 0.99983945023645981, 5.715327212215367e-11, 0.021193278070079785, 0.97880672187276696, 3.2999678230222699e-10, 0.029728955965103266, 0.97027104370490003, 1.5979272319802827e-09, 0.058484005387143365, 0.94151599301492939, 7.1179770126793832e-09, 0.034830021644765251, 0.96516997123725778, 2.4371933812835587e-08, 0.033594794856526007, 0.96640518077154014, 1.1942460612760051e-07, 0.050868191962605856, 0.94913168861278807, 5.884704560091193e-07, 0.052456570500484724, 0.94754284102905928, 2.8410714601984615e-06, 0.077374795730142401, 0.92262236319839741, 9.3211675545631986e-06, 0.11782901767715663, 0.88216166115528882, 3.9345881457697885e-05, 0.10586954353028988, 0.89409111058825241, 0.0001405174272693304, 0.20967228324452339, 0.79018719932820725, 0.00054998713503999442, 0.2301343614117039, 0.7693156514532562, 0.0012577130436678496, 0.35075699996733722, 0.64798528698899494, 0.028674514115622787, 0.44135027504055413, 0.52997521084382315, 0.0097800513521887865, 0.51474881366893599, 0.47547113497887511, 0.032067924665140454, 0.6052776622641477, 0.36265441307071189, 0.0950402629788107, 0.52662013986132783, 0.37833959715986143, 0.058359927550077247, 0.65123852594302745, 0.29040154650689526, 0.30676510578518651, 0.511511494855586, 0.18172339935922752, 0.39807812005322452, 0.47131611518985894, 0.13060576475691657, 0.69469774016045083, 0.26731493814817442, 0.037987321691374823, 0.61569958793272406, 0.3230686221530723, 0.061231789914203603, 0.72417678120376272, 0.24150383528473066, 0.034319383511506589, 0.91453093874707181, 0.072185692130575421, 0.01328336912235286, 0.94061063280727397, 0.054632533887668429, 0.0047568333050575827, 0.95769458075676495, 0.040201562542849685, 0.0021038567003853945, 0.9627929884309181, 0.036590237600538186, 0.00061677396854360668, 0.96993609453164731, 0.029857981925494666, 0.00020592354285794284, 0.99409111054581212, 0.0058435971952659543, 6.5292258921788846e-05, 0.99566306061244092, 0.0043017670863138048, 3.5172301245249531e-05, 0.98665977709230013, 0.01332140114790183, 1.882175979812223e-05, 0.99726662916713416, 0.0027211872188618036, 1.2183614004143976e-05, 0.93972420864926431, 0.060266574508937097, 9.216841798684859e-06, 0.98591063450261096, 0.014053864888318803, 3.5500609070171877e-05, 1.5722910771986251e-11, 0.00015924225241121373, 0.99984075773186587, 5.4960143058987886e-11, 0.030003593882343266, 0.96999640606269655, 2.6307862914140925e-10, 0.011630614333934525, 0.9883693854029868, 1.2982856773412406e-09, 0.039974285938707624, 0.96002571276300674, 5.4748242528577134e-09, 0.023663936054151687, 0.976336058471024, 3.1316150502647088e-08, 0.027235915413429776, 0.97276405327041982, 1.1321209554098173e-07, 0.042595620639255725, 0.95740426614864882, 5.9795690136218268e-07, 0.017438173155925336, 0.98256122888717334, 2.4649363394370085e-06, 0.053907602548449743, 0.94608993251521079, 7.216653795107126e-06, 0.098960216184005897, 0.90103256716219904, 4.5191500880007834e-05, 0.10229605010773089, 0.89765875839138898, 0.00010975898091841597, 0.14466735403110442, 0.85522288698797722, 0.00038007082176860416, 0.27872926403735859, 0.72089066514087285, 0.0011900061186975064, 0.35078077855185269, 0.64802921532944968, 0.02805540116460423, 0.45341211080212007, 0.51853248803327578, 0.010764024114413793, 0.45329345171126378, 0.53594252417432242, 0.065488732167637911, 0.65519001976821012, 0.27932124806415198, 0.072212199387054393, 0.72245576876949025, 0.20533203184345539, 0.13561030828027243, 0.80012275719790971, 0.06426693452181792, 0.38372846175915604, 0.47988228303541325, 0.13638925520543058, 0.43719277419040659, 0.33645757754889161, 0.22634964826070161, 0.62347075615045644, 0.28788873833801987, 0.088640505511523623, 0.58109227420307807, 0.351371950279949, 0.067535775516973026, 0.79400292795233607, 0.18105297486625949, 0.024944097181404411, 0.9139607174946488, 0.072762585910215269, 0.013276696595135992, 0.95135494406111376, 0.043067632291405651, 0.0055774236474804657, 0.92596556385245343, 0.071261042931099375, 0.0027733932164471053, 0.97306551752294235, 0.026275716114251176, 0.00065876636280652915, 0.98640080969260957, 0.013347995496412926, 0.00025119481097760158, 0.99161869525162583, 0.0082682879375069861, 0.00011301681086729397, 0.98789635835861556, 0.01206780192785129, 3.5839713533250897e-05, 0.99694085974943014, 0.0030367468212366923, 2.2393429333304457e-05, 0.99800256657017805, 0.0019865525553096376, 1.0880874512223259e-05, 0.99821633293335454, 0.0017763860429823425, 7.2810236631001788e-06, 0.99826454295271017, 0.0017301106657655668, 5.3463815241317353e-06, 1.4776740137602711e-11, 0.00013414022858605908, 0.99986585975663733, 4.6300513708786933e-11, 0.01965426030242572, 0.9803457396512737, 2.6234330573059661e-10, 0.00036238377872868313, 0.99963761595892808, 1.613504112766891e-09, 0.00089109455206720872, 0.99910890383442863, 6.1096903584786802e-09, 0.013689582780224219, 0.98631041111008544, 3.806569167025583e-08, 0.017161748835659331, 0.98283821309864894, 1.0076978395624472e-07, 0.019654258322780158, 0.98034564090743592, 4.9559954932050257e-07, 0.044953909537167498, 0.95504559486328322, 2.2987489996242469e-06, 0.013030469946320946, 0.98696723130467956, 7.397591693764927e-06, 0.1464892998856431, 0.85350330252266304, 4.3292944525184965e-05, 0.19050426515518376, 0.80945244190029109, 0.019035109959053019, 0.08789496116983575, 0.89306992887111114, 0.00064689527722181612, 0.23608992967694434, 0.76326317504583385, 0.048395461253001142, 0.29795587884907565, 0.6536486598979232, 0.0046861036728838915, 0.50318430900855238, 0.49212958731856371, 0.01122471857926274, 0.49987869011216157, 0.4888965913085756, 0.12382094198014931, 0.52409996588084928, 0.3520790921390014, 0.1605005119790715, 0.53524899187843811, 0.30425049614249033, 0.20965967811493125, 0.59162113930744409, 0.19871918257762458, 0.29276594099134395, 0.54074079047904344, 0.16649326852961249, 0.49837013587232309, 0.38353883809910699, 0.11809102602856991, 0.69088569763685714, 0.21267847220991304, 0.096435830153229818, 0.63999631213235397, 0.24626620284270148, 0.11373748502494455, 0.72830635497980567, 0.16814838193316983, 0.10354526308702455, 0.92298165842769053, 0.064574005138227406, 0.012444336434082095, 0.95846926195585125, 0.035124991936709524, 0.0064057461074392376, 0.96505439295829154, 0.032290985104160036, 0.0026546219375483543, 0.97242160835875646, 0.026726080921534993, 0.00085231071970847565, 0.98862713876212316, 0.011117265350910083, 0.00025559588696679353, 0.99229982509509329, 0.0075737021569505401, 0.00012647274795616972, 0.97319556615527103, 0.026748499746583349, 5.593409814555021e-05, 0.99710974235865635, 0.002864451988807614, 2.5805652536018087e-05, 0.99759973342109121, 0.0023843118993613281, 1.5954679547526123e-05, 0.9969172245390302, 0.0030674155400210357, 1.5359920948821713e-05, 0.99874827087156437, 0.0012470212936870357, 4.7078347486403233e-06, 9.7450028416373407e-12, 7.9407963503867098e-05, 0.9999205920267511, 5.543497048108002e-11, 0.00017476716041905143, 0.99982523278414592, 1.6522628019573371e-10, 0.00020487056732963453, 0.99979512926744407, 1.1004130796729861e-09, 0.00054552057801935685, 0.99945447832156764, 4.3147419317708209e-09, 0.031764233305951857, 0.9682357623793062, 4.4183598096215622e-08, 0.032724381013353274, 0.96727557480304871, 1.0213216506373892e-07, 0.032724379117022202, 0.96727551875081275, 4.6748150228075886e-07, 0.034830005610293577, 0.96516952690820412, 2.8944680850101307e-06, 0.053907579393366038, 0.94608952613854891, 6.8401858457495187e-06, 0.051350407563475607, 0.94864275225067862, 4.2288229609097081e-05, 0.15284795455060832, 0.84710975721978254, 0.045890069806887993, 0.10594910963041623, 0.84816082056269582, 0.0004039828679425948, 0.27248430824822867, 0.7271117088838287, 0.0014317249600511064, 0.50059847338920349, 0.49796980165074534, 0.0031682920577561806, 0.32875625853129753, 0.66807544941094632, 0.14007213011769412, 0.39525784810192865, 0.46467002178037708, 0.060335162020955097, 0.5107642673509557, 0.42890057062808923, 0.068901196818126897, 0.69698801831644763, 0.23411078486542539, 0.12448441105338233, 0.47900749804456111, 0.39650809090205658, 0.33672714414871358, 0.32392575399099149, 0.33934710186029493, 0.63664263410065269, 0.22270520952530348, 0.14065215637404377, 0.27610128479574603, 0.53120942822384698, 0.19268928698040699, 0.74549517920020447, 0.19124096346480865, 0.063263857334986989, 0.87030326117595458, 0.10304207426413499, 0.026654664559910449, 0.93537072989748393, 0.051417751173010354, 0.013211518929505771, 0.90809120890068074, 0.085373083665776825, 0.0065357074335423357, 0.9565376945801991, 0.04122098491339371, 0.0022413205064071603, 0.95807364609933843, 0.040962242784464434, 0.00096411111619706068, 0.92099342804345152, 0.078753771290981531, 0.00025280066556699032, 0.992442566968611, 0.0074065361038368879, 0.00015089692755214875, 0.99572231550936152, 0.0042148468997504377, 6.2837590888111967e-05, 0.99134726004376938, 0.0085586688949944659, 9.4071061236363082e-05, 0.99802897803884261, 0.0019550608975151362, 1.5961063642100496e-05, 0.99327938162255047, 0.0066798092837178948, 4.0809093731748351e-05, 0.9986311122982684, 0.0013626115141493135, 6.2761875822913219e-06, 6.7388632162049671e-12, 4.9364762207106814e-05, 0.99995063523105399, 4.2433006481895921e-11, 0.051350758810030234, 0.94864924114753679, 1.7257304034797493e-10, 0.00019236307682332141, 0.99980763675060369, 7.5234801343775437e-10, 0.051350758773575561, 0.9486492404740765, 4.9803189007011353e-09, 0.00090208264868298982, 0.9990979123709981, 2.4009290881476715e-08, 0.030858820153509676, 0.9691411558371994, 1.2528099340963286e-07, 0.034830017529144795, 0.96516985718986181, 5.2063787722667725e-07, 0.067315410303138395, 0.93268406905898438, 1.4129672385283775e-06, 0.11416757860757935, 0.88583100842518214, 6.0682881578408014e-06, 0.026351816486843552, 0.97364211522499866, 3.7386115182993796e-05, 0.046899702306341141, 0.95306291157847589, 8.016968117097043e-05, 0.24985439330176415, 0.75006543701706485, 0.00034565980934394023, 0.58441035377936745, 0.41524398641128868, 0.0011304260154092413, 0.31656987858998814, 0.68229969539460267, 0.0035604164419432553, 0.64111987709890883, 0.35531970645914801, 0.0091238402813121691, 0.61324298895716323, 0.37763317076152447, 0.12806014139478231, 0.689873329307228, 0.18206652929798983, 0.046441352413898636, 0.37057007675116349, 0.58298857083493782, 0.29705346121765586, 0.30481103947455324, 0.39813549930779096, 0.32875701438496641, 0.25300690037021911, 0.41823608524481454, 0.58872081446699387, 0.26077382736263455, 0.1505053581703715, 0.8091949032455994, 0.088963618072826628, 0.10184147868157394, 0.8273979804226429, 0.10612569427653497, 0.066476325300822092, 0.79151970053582321, 0.17532851569116747, 0.033151783773009404, 0.90960582233468579, 0.077780021785032058, 0.012614155880282082, 0.92994619328513295, 0.065061260660114972, 0.0049925460547520645, 0.90948288095894547, 0.087490697758068184, 0.0030264212829863866, 0.97536224692630613, 0.023522644634195223, 0.001115108439498745, 0.95494297937251682, 0.043568029563507277, 0.001488991063975965, 0.99252839457658693, 0.0072906289943522121, 0.00018097642906096838, 0.99371392777951295, 0.0061739244113479192, 0.00011214780913929365, 0.996387276765903, 0.0035649814270718389, 4.7741807025164776e-05, 0.99591720423002128, 0.0040425840764449416, 4.0211693533666997e-05, 0.99824821565752853, 0.0017388410567994045, 1.2943285671922303e-05, 0.99858038976050756, 0.0014116878842659047, 7.9223552264642187e-06)
 
 aa31dict={'CYS': 'C', 'GLN': 'Q', 'ILE': 'I', 'SER': 'S', 'VAL': 'V', 'MET': 'M', 'ASN': 'N', 'PRO': 'P', 'LYS': 'K', 'THR': 'T', 'PHE': 'F', 'ALA': 'A', 'HIS': 'H', 'GLY': 'G', 'ASP': 'D', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 'GLU': 'E', 'TYR': 'Y'}
-aa3s=list(aa31dict.keys());aa3s.sort()#introduce ordering
-aa1s=list(aa13dict.keys());aa1s.sort()
+aa3s=aa31dict.keys();aa3s.sort()#introduce ordering
+aa1s=aa13dict.keys();aa1s.sort()
 aa3s=['ALA','ARG','ASP' ,'ASN' ,'CYS' ,'GLU' ,'GLN' ,'GLY' ,'HIS' ,'ILE' ,'LEU' ,'LYS' ,'MET' ,'PHE' ,'PRO' ,'SER' ,'THR' ,'TRP' ,'TYR' ,'VAL']
 aa1s3=[aa31dict[k] for k in aa3s]
 
@@ -3094,36 +3091,36 @@ class ShiftDict(dict):
         self.counts={'H':0,'C':0,'N':0,'P':0}#P is for DNA
 
     def writeTable(self,pdbID,pref='predictions_',col=0):
-        if pref!=None:
-          pdbID=''.join(pdbID.split())##+'R'
-          fil=open(pref+pdbID+'.out','w')
-          fil.write(' NUM    RES      HA       H        N       CA        CB       C   \n')
-          fil.write(' ----  ------ -------- ------- -------- -------- -------- --------\n')
-        else:fil=open('junk','w')
-        ress=list(self.keys())
-        ress.sort(lambda x,y: cmp(eval(x),eval(y)))
-        ##avedct =dict(zip(['HA','H','N','CA','CB','C'],[SubContainer() for i in range(6)]))
-        lavedct=dict(list(zip(['HA','H','N','CA','CB','C'],[SubContainer() for i in range(6)])))
-        for res in ress:
-          if len(self[res])>0:
-            resn=None
-            fil.write('  %3s  '%res)
-            fil.write('  %1s  '%self[res][list(self[res].keys())[0]][2])#generalize
-            for at in ['HA','H','N','CA','CB','C']:
-              if at in self[res]:
-                vals=self[res][at];shift=vals[col]
-                fil.write(' %8.4f'%shift)
-                if shift>0.0:
-                  ##avedct[at].update(shift)
-                  lavedct[at].update(log(shift))
-              else:
-                fil.write('   0.0000')
-            fil.write('\n')
-        fil.close()
-        ##return avedct,lavedct
-        return lavedct
+	if pref<>None:
+	  pdbID=string.join(string.split(pdbID),'')##+'R'
+	  fil=open(pref+pdbID+'.out','w')
+	  fil.write(' NUM    RES      HA       H        N       CA        CB       C   \n')
+	  fil.write(' ----  ------ -------- ------- -------- -------- -------- --------\n')
+	else:fil=open('junk','w')
+	ress=self.keys()
+	ress.sort(lambda x,y: cmp(eval(x),eval(y)))
+	##avedct =dict(zip(['HA','H','N','CA','CB','C'],[SubContainer() for i in range(6)]))
+	lavedct=dict(zip(['HA','H','N','CA','CB','C'],[SubContainer() for i in range(6)]))
+	for res in ress:
+	  if len(self[res])>0:
+	    resn=None
+	    fil.write('  %3s  '%res)
+	    fil.write('  %1s  '%self[res][self[res].keys()[0]][2])#generalize
+	    for at in ['HA','H','N','CA','CB','C']:
+	      if at in self[res]:
+		vals=self[res][at];shift=vals[col]
+		fil.write(' %8.4f'%shift)
+		if shift>0.0:
+		  ##avedct[at].update(shift)
+		  lavedct[at].update(log(shift))
+	      else:
+		fil.write('   0.0000')
+	    fil.write('\n')
+	fil.close()
+	##return avedct,lavedct
+	return lavedct
 
-                
+		
 class Parser:
 
     def __init__(self,buf):
@@ -3144,24 +3141,24 @@ class Parser:
             elif s=='noneblank':
                 if len(self.buffer[k])>0:
                     match=True
-            if s!='' or stopstr!=None:
-                if positions==None:searchlist=list(range(len(self.buffer[k])))
+            if s<>'' or stopstr<>None:
+                if positions==None:searchlist=range(len(self.buffer[k]))
                 else:searchlist=positions
                 for j in searchlist:
                   if len(self.buffer[k])>j:
                     if self.buffer[k][j]==s:
-                        if verb:print(self.buffer[k])
+                        if verb:print self.buffer[k]
                         if s2==None:match=True
                         else:
-                            if positions2==None:searchlist2=list(range(len(self.buffer[k])))
+                            if positions2==None:searchlist2=range(len(self.buffer[k]))
                             else:searchlist2=positions2
                             for j2 in searchlist2:
                                 if self.buffer[k][j2]==s2:
                                     match=True
                     if self.buffer[k][j]==stopstr:return None
             if match:
-                if verb:print('matching')
-                if verb:print(self.buffer[k])
+                if verb:print 'matching'
+                if verb:print self.buffer[k]
                 if changeStart:self.start=k+incr
                 hits+=1
                 if hits==numhits:
@@ -3170,141 +3167,141 @@ class Parser:
         self.terminated=True
 
     def getExcerpt(self,end=None):
-        if end==None:end=self.numlines
-        return self.buffer[self.start:end]
+	if end==None:end=self.numlines
+	return self.buffer[self.start:end]
 
     def getCurrent(self):
-        return self.buffer[self.start]
+	return self.buffer[self.start]
 
     def findShiftData(self,ch,verb=True,skipCO=False):
         self.search(s="_Saveframe_category",s2='assigned_chemical_shifts',
                     positions=[0],positions2=[1])
-        print('finding NMR shifts for chain',ch)
-        if verb:print(self.start)
+	print 'finding NMR shifts for chain',ch
+        if verb:print self.start
         li,mi=None,None
         while mi==None:
             li=self.search(s='loop_')
             mi=self.search(s='_Chem_shift_value',stopstr='')
-            if verb:print(li,mi)
+            if verb:print li,mi
             if self.terminated:
                 return ShiftDict()#empty
-                print('WARNING: no _Chem_shift_value entry found')
+                print 'WARNING: no _Chem_shift_value entry found'
         pos=mi-li-1
         idict={}
         self.search()#nearest blank
         for i in range(self.start-li-1):
-            if verb:print('**',i,self.buffer[li+i])
+            if verb:print '**',i,self.buffer[li+i]
             key=self.buffer[li+i][0][1:]
             idict[key]=i
-        if verb:print(idict)
+        if verb:print idict
         startI=self.search('noneblank',incr=0)
         endI=self.search(incr=0)
         return getShiftDBA(startI,endI,self.buffer,ch,idict,skipCO=skipCO)
 
     def findShiftData31(self,ch,verb=True):
-        if verb:print(self.start)
+        if verb:print self.start
         li,mi=None,None
         while mi==None:
             li=self.search(s='loop_')
             mi=self.search(s='_Atom_chem_shift.Val',stopstr='')
-            if verb:print(li,mi,self.start)
+            if verb:print li,mi,self.start
         pos=mi-li-1
         idict={}
         self.search()#nearest blank
         for i in range(self.start-li-1):
-            if verb:print('**',i,self.buffer[li+i])
+            if verb:print '**',i,self.buffer[li+i]
             key=self.buffer[li+i][0][1:]
             idict[key]=i
-        if verb:print(idict)
+        if verb:print idict
         startI=self.search('noneblank',incr=0)
         endI=self.search(incr=0)
-        if verb:print(startI,endI)
+	if verb:print startI,endI
         return getShiftDBA31(startI,endI,self.buffer,ch,idict)
 
     def findReference(self,verb=True):
         self.search(s="_Saveframe_category",s2='chemical_shift_reference',
                     positions=[0],positions2=[1])
-        print('finding reference')
-        if verb:print(self.start)
+	print 'finding reference'
+        if verb:print self.start
         li,mi=None,None
         while mi==None:
             li=self.search(s='loop_')
             mi=self.search(s='_Mol_common_name',stopstr='')
-            if verb:print(li,mi)
+            if verb:print li,mi
             if self.terminated:
-                print('WARNING: no _Mol_common_name entry found')
+                print 'WARNING: no _Mol_common_name entry found'
                 return None
         pos=mi-li-1
         idict={}
         self.search()#nearest blank
         for i in range(self.start-li-1):
-            if verb:print('**',i,self.buffer[li+i])
+            if verb:print '**',i,self.buffer[li+i]
             key=self.buffer[li+i][0][1:]
             idict[key]=i
-        if verb:print(idict)
+        if verb:print idict
         startI=self.search('noneblank',incr=0)
         endI=self.search(incr=0)
-        ##return [self.buffer[i][idict['Mol_common_name']] for i in range(startI,endI)]
-        return [self.buffer[i][pos] for i in range(startI,endI)]
+	##return [self.buffer[i][idict['Mol_common_name']] for i in range(startI,endI)]
+	return [self.buffer[i][pos] for i in range(startI,endI)]
 
     def findSampleConditions(self,verb=True):
         self.search(s="_Saveframe_category",s2='sample_conditions',
                     positions=[0],positions2=[1])
-        print('finding sample conditions')
-        if verb:print(self.start)
+	print 'finding sample conditions'
+        if verb:print self.start
         li,mi=None,None
         while mi==None:
             li=self.search(s='loop_')
             mi=self.search(s='_Variable_type',stopstr='')
-            if verb:print(li,mi)
+            if verb:print li,mi
             if self.terminated:
-                print('WARNING: no _Variable_type entry found')
+                print 'WARNING: no _Variable_type entry found'
                 return None
         pos=mi-li-1
         idict={}
         self.search()#nearest blank
         for i in range(self.start-li-1):
-            if verb:print('**',i,self.buffer[li+i])
+            if verb:print '**',i,self.buffer[li+i]
             key=self.buffer[li+i][0][1:]
             idict[key]=i
-        if verb:print(idict)
+        if verb:print idict
         startI=self.search('noneblank',incr=0)
         endI=self.search(incr=0)
-        dct={}
-        for i in range(startI,endI):
-           lin=self.buffer[i]
-           key=lin[pos]
-           if key[0]=="'":
-             key=key[1:]
-             for k in range(1,10):
-                wordk=lin[pos+k]
-                key+=(' '+wordk)
-                if wordk[-1]=="'":
-                  key=key[:-1]
-                  break
-             ##dct[key]=lin[pos+k+1]
-             dct[key]=(lin[pos+k+1],lin[pos+k+1+2])#value,unit
-           else:
-             dct[key]=lin[pos+1]
-        return dct
-        
+	dct={}
+	for i in range(startI,endI):
+	   lin=self.buffer[i]
+	   key=lin[pos]
+	   if key[0]=="'":
+	     key=key[1:]
+	     for k in range(1,10):
+		wordk=lin[pos+k]
+		key+=(' '+wordk)
+		if wordk[-1]=="'":
+		  key=key[:-1]
+		  break
+	     ##dct[key]=lin[pos+k+1]
+	     dct[key]=(lin[pos+k+1],lin[pos+k+1+2])#value,unit
+	   else:
+	     dct[key]=lin[pos+1]
+	return dct
+	
     def findDatabaseMatches(self,verb=False):
-        dct={}
-        self.start=0
+	dct={}
+	self.start=0
         k=self.search('_Database_name')
-        if k==None:
-          print('warning no database matches')
-          return {}
-        for i in range(len(self.buffer)-k):
-          lin=self.buffer[k+i]
-          if len(lin)>0:
-            if lin[0]=='stop_':return dct
-          if len(lin)>1:
-            dbnam=lin[0]
-            if not dbnam in dct:dct[dbnam]=[]
-            if dbnam in ['BMRB','PDB','DBJ','EMBL','GB','REF','SP','TPG']:
-              dbid=lin[1]
-              dct[dbnam].append(dbid)
+	if k==None:
+	  print 'warning no database matches'
+	  return {}
+	for i in range(len(self.buffer)-k):
+	  lin=self.buffer[k+i]
+	  if len(lin)>0:
+	    if lin[0]=='stop_':return dct
+	  if len(lin)>1:
+	    dbnam=lin[0]
+	    if not dbnam in dct:dct[dbnam]=[]
+	    if dbnam in ['BMRB','PDB','DBJ','EMBL','GB','REF','SP','TPG']:
+	      dbid=lin[1]
+	      dct[dbnam].append(dbid)
 
 def getShiftDBA31(start,end,buf,chnum,idict,includeLabel=True,includeAmb=False):
     dba=ShiftDict()
@@ -3316,17 +3313,17 @@ def getShiftDBA31(start,end,buf,chnum,idict,includeLabel=True,includeAmb=False):
         ##if ambc in ['1','2','3','.']:#unamb, geminal, arom (sym degenerate), None
             val=lst[idict['Atom_chem_shift.Val_err']]
             if val=='.':std=None
-            else:std=float(val)
+            else:std=string.atof(val)
             if std==None or std<=1.3:#was 1.3
                 elem=lst[idict['Atom_chem_shift.Atom_type']]
                 res=lst[idict['Atom_chem_shift.Seq_ID']]
                 rl3=lst[idict['Atom_chem_shift.Comp_ID']]
                 at= lst[idict['Atom_chem_shift.Atom_ID']]
-                avg=float(lst[idict['Atom_chem_shift.Val']])
-                if res not in dba:dba[res]={}
-                dba[res][at]=[avg,std,rl3,ambc]
+                avg=string.atof(lst[idict['Atom_chem_shift.Val']])
+                if not dba.has_key(res):dba[res]={}
+		dba[res][at]=[avg,std,rl3,ambc]
                 dba.counts[elem]+=1
-            else:print('skipping',std)
+	    else:print 'skipping',std
     return dba  
 
 def getShiftDBA(start,end,buf,chnum,idict,includeLabel=True,includeAmb=True,skipCO=False):#was includeAmb=False
@@ -3340,154 +3337,154 @@ def getShiftDBA(start,end,buf,chnum,idict,includeLabel=True,includeAmb=True,skip
             val=lst[idict['Chem_shift_value_error']]
             ##if val=='.':std=None
             if val in ['.','@']:std=None
-            else:std=float(val)
+            else:std=string.atof(val)
             if std==None or std<=1.3:#was 1.3
                 elem=lst[idict['Atom_type']]
                 res=lst[idict['Residue_seq_code']]
                 rl3=lst[idict['Residue_label']]
                 at= lst[idict['Atom_name']]
-                avg=float(lst[idict['Chem_shift_value']])
-                if res not in dba:dba[res]={}
-                if not (skipCO and at=='C'):
+                avg=string.atof(lst[idict['Chem_shift_value']])
+                if not dba.has_key(res):dba[res]={}
+		if not (skipCO and at=='C'):
                  if includeLabel:
-                  if includeAmb:
+		  if includeAmb:
                     dba[res][at]=[avg,std,rl3,ambc]
-                  else:
+		  else:
                     dba[res][at]=[avg,std,rl3]
                  else:
-                  if includeAmb:
+		  if includeAmb:
                     dba[res][at]=[avg,std,'X',ambc]
-                  else:
+		  else:
                     dba[res][at]=[avg,std,'X']
                 dba.counts[elem]+=1
-                ##print res,rl3,at,avg,ambc
-                ##print dba[res][at]
-            else:print('skipping',std)
+		##print res,rl3,at,avg,ambc
+		##print dba[res][at]
+	    else:print 'skipping',std
     ##dba.show()
     if False:#includeAmb:
-        dba.defineambiguities()
-        dba.show()
+	dba.defineambiguities()
+	dba.show()
     return dba  
 
 def convChi2CDF(rss,k):
-        return ((((rss/k)**(1.0/6))-0.50*((rss/k)**(1.0/3))+1.0/3*((rss/k)**(1.0/2)))\
-                - (5.0/6-1.0/9/k-7.0/648/(k**2)+25.0/2187/(k**3)))\
-                / sqrt(1.0/18/k+1.0/162/(k**2)-37.0/11664/(k**3))
+	return ((((rss/k)**(1.0/6))-0.50*((rss/k)**(1.0/3))+1.0/3*((rss/k)**(1.0/2)))\
+		- (5.0/6-1.0/9/k-7.0/648/(k**2)+25.0/2187/(k**3)))\
+		/ sqrt(1.0/18/k+1.0/162/(k**2)-37.0/11664/(k**3))
 
 
 
 class ShiftGetter:
 
     def __init__(self,bmrID):
-        self.bmrID=bmrID
-        path=''
-        bmrname=path+'bmr'+self.bmrID+'.str'
-        print('opening bmr shift file',bmrname)
-        try:open(bmrname)
-        except IOError:
-          ##try:
-          ##  bmrname='new'+bmrname
-          ##  open(bmrname)
-          ##except IOError:
-            print('getting bmrfile',self.bmrID)
-            bmrpath='http://www.bmrb.wisc.edu/ftp/pub/bmrb/entry_directories/'
-            ##os.system('wget %sbmr%s/bmr%s_21.str'%(bmrpath,self.bmrID,self.bmrID))
-            os.system('curl -O %sbmr%s/bmr%s_21.str'%(bmrpath,self.bmrID,self.bmrID))
-            os.system('mv bmr%s_21.str %sbmr%s.str'%(self.bmrID,path,self.bmrID))
-        buf=initfil2(bmrname)
-        parser=Parser(buf)
+	self.bmrID=bmrID
+	path=''
+	bmrname=path+'bmr'+self.bmrID+'.str'
+	print 'opening bmr shift file',bmrname
+	try:open(bmrname)
+	except IOError:
+	  ##try:
+	  ##  bmrname='new'+bmrname
+	  ##  open(bmrname)
+	  ##except IOError:
+	    print 'getting bmrfile',self.bmrID
+	    bmrpath='http://www.bmrb.wisc.edu/ftp/pub/bmrb/entry_directories/'
+	    ##os.system('wget %sbmr%s/bmr%s_21.str'%(bmrpath,self.bmrID,self.bmrID))
+	    os.system('curl -O %sbmr%s/bmr%s_21.str'%(bmrpath,self.bmrID,self.bmrID))
+	    os.system('mv bmr%s_21.str %sbmr%s.str'%(self.bmrID,path,self.bmrID))
+	buf=initfil2(bmrname)
+	parser=Parser(buf)
         parser.search(s="Polymer",s2='residue',positions=[1],positions2=[2])
         self.dbdct={}
         self.title='no title...'
-        seq=''
-        if True:
+	seq=''
+	if True:
           k=parser.search('_Mol_residue_sequence')
-          if k==None:raise SystemExit("no sequence found (bmrID might not exist) %s"%self.bmrID)
+	  if k==None:raise SystemExit, "no sequence found (bmrID might not exist) %s"%self.bmrID
           k-=1
-          ##print 'try buf[k]',buf[k]
-          if len(buf[k])>1:
-            seq=buf[k][1]
-            print('found sequence',seq)
-        if len(seq)==0:
+	  ##print 'try buf[k]',buf[k]
+	  if len(buf[k])>1:
+	    seq=buf[k][1]
+	    print 'found sequence',seq
+	if len(seq)==0:
          i0=parser.search(s=";",positions=[0])
-         print(i0)
+	 print i0
          if i0==None:
-          print('warning no residues found (maybe missing semicolons?)',self.bmrID)
-          self.moldba=ShiftDict()#counts er all 0
-          return
+	  print 'warning no residues found (maybe missing semicolons?)',self.bmrID
+	  self.moldba=ShiftDict()#counts er all 0
+	  return
          i1=parser.search(s=";",positions=[0])
-         for i in range(i0,i1-1):
-          if len(buf[i])>0:#some lines can be blank
-            seq+=buf[i][0]
-        ##print i0,i1,seq
-        seq=seq.upper()
-        self.seq=seq
-        if len(seq)<10:
-          print('WARNING small or empty sequence!')
-          self.moldba=ShiftDict()#counts er all 0
-          return
-        print('seq: ',seq)
-        xcount=seq.count('X')
-        xcount+=seq.count('U')#RNA
-        print('xcount:',self.bmrID,xcount)
-        if xcount>5 or xcount*1.0/len(seq)>0.15:
-          print('warning: high xcount',xcount,seq)
-          self.moldba=ShiftDict()#counts er all 0
-          return
-        moldba=parser.findShiftData('none',verb=False,skipCO=False)
-        print(moldba.counts)
-        self.moldba=moldba
-        parser.start=0
+	 for i in range(i0,i1-1):
+	  if len(buf[i])>0:#some lines can be blank
+	    seq+=buf[i][0]
+	##print i0,i1,seq
+	seq=string.upper(seq)
+	self.seq=seq
+	if len(seq)<10:
+	  print 'WARNING small or empty sequence!'
+	  self.moldba=ShiftDict()#counts er all 0
+	  return
+	print 'seq: ',seq
+	xcount=seq.count('X')
+	xcount+=seq.count('U')#RNA
+	print 'xcount:',self.bmrID,xcount
+	if xcount>5 or xcount*1.0/len(seq)>0.15:
+	  print 'warning: high xcount',xcount,seq
+	  self.moldba=ShiftDict()#counts er all 0
+	  return
+	moldba=parser.findShiftData('none',verb=False,skipCO=False)
+	print moldba.counts
+	self.moldba=moldba
+	parser.start=0
         k=parser.search('_Entry_title')
-        self.title=' '.join(buf[k+1])
-        if buf[k+2][0]!=';':
-          self.title+=('  '+' ').join(buf[k+2])
+	self.title=string.join(buf[k+1],' ')
+	if buf[k+2][0]<>';':
+	  self.title+=('  '+string.join(buf[k+2],' '))
         k2=parser.search('_Details')
-        if k2!=None and len(buf[k2-1])>1 and buf[k2-1][1]!='.':
-          print('details:',k2,buf[k2-1])
-          self.title+=(' :'+' ').join(buf[k2-1][1:])
-        print(self.title)
+	if k2<>None and len(buf[k2-1])>1 and buf[k2-1][1]<>'.':
+	  print 'details:',k2,buf[k2-1]
+	  self.title+=(' :'+string.join(buf[k2-1][1:],' '))
+	print self.title
         self.references=parser.findReference(verb=False)
-        print(self.references)
-        parser.start=0
+        print self.references
+	parser.start=0
         parser.terminated=False#OK?
         conddct=parser.findSampleConditions(verb=False)
-        print(conddct)
-        self.pH=-9.99;self.temperature=999.9
-        if 'pH' in conddct:
-           if conddct['pH']=='.':self.pH=-9.99
-           else:self.pH=eval(conddct['pH'])
-        if 'temperature' in conddct:
-           if conddct['temperature']=='.':self.temperature=-999
-           else:self.temperature=eval(conddct['temperature'])
-        if 'ionic strength' in conddct:
-           ionstr=conddct['ionic strength'][0]
-           if ionstr in ['.',' ','']:self.ion=0.1
-           else:self.ion=eval(conddct['ionic strength'][0])
-           unit=conddct['ionic strength'][1]
-           if unit=='mM':self.ion/=1000.0
-        else:self.ion=0.1
-        parser.start=0
+	print conddct
+	self.pH=-9.99;self.temperature=999.9
+	if 'pH' in conddct:
+	   if conddct['pH']=='.':self.pH=-9.99
+	   else:self.pH=eval(conddct['pH'])
+	if 'temperature' in conddct:
+	   if conddct['temperature']=='.':self.temperature=-999
+	   else:self.temperature=eval(conddct['temperature'])
+	if 'ionic strength' in conddct:
+	   ionstr=conddct['ionic strength'][0]
+	   if ionstr in ['.',' ','']:self.ion=0.1
+	   else:self.ion=eval(conddct['ionic strength'][0])
+	   unit=conddct['ionic strength'][1]
+	   if unit=='mM':self.ion/=1000.0
+	else:self.ion=0.1
+	parser.start=0
         k=parser.search('_System_physical_state')
         if k==None:
-          print('warning: phys_state not defined in bmrbfile',self.bmrID)
-          self.phys_state='unknown'
-        else: self.phys_state=' '.join(buf[k-1][1:])
-        print(self.phys_state)
-        print('summary_info: %5s %4.2f %5.1f %3d'%(self.bmrID,self.pH,self.temperature,len(self.seq)), end=' ')
-        print(self.phys_state, end=' ')
-        print(self.title)
+	  print 'warning: phys_state not defined in bmrbfile',self.bmrID
+	  self.phys_state='unknown'
+	else: self.phys_state=string.join(buf[k-1][1:],' ')
+	print self.phys_state
+	print 'summary_info: %5s %4.2f %5.1f %3d'%(self.bmrID,self.pH,self.temperature,len(self.seq)),
+	print self.phys_state,
+	print self.title
         self.dbdct=parser.findDatabaseMatches(verb=True)
-        print(self.dbdct)
-        if False:##self.bmrID=='5387':
-          #out=open('allshifts5387w2.dat','w')
-          out=open('allshifts5387w3.dat','w')
-          self.xcamformat(out)
+        print self.dbdct
+	if False:##self.bmrID=='5387':
+	  #out=open('allshifts5387w2.dat','w')
+	  out=open('allshifts5387w3.dat','w')
+	  self.xcamformat(out)
         
     def write_rereferenced(self,lacsoffs):
-        out=open('rereferenced/bmr%s.str'%self.bmrID,'w')
-        out.write('data_%s\n'%self.bmrID)
-        out.write('''
+	out=open('rereferenced/bmr%s.str'%self.bmrID,'w')
+	out.write('data_%s\n'%self.bmrID)
+	out.write('''
 #######################
 #  Entry information  #
 #######################
@@ -3498,22 +3495,22 @@ save_entry_information
    _Entry_title
 ;
 ''')
-        out.write('%s\n'%self.title)
-        out.write(';\n')
-        out.write('''
+	out.write('%s\n'%self.title)
+	out.write(';\n')
+	out.write('''
         ##############################
         #  Polymer residue sequence  #
         ##############################
 
 ''')
-        s=self.seq
-        out.write('_Residue_count   %d\n'%len(s))
-        out.write('''_Mol_residue_sequence
+	s=self.seq
+	out.write('_Residue_count   %d\n'%len(s))
+	out.write('''_Mol_residue_sequence
 ;
 ''')
-        for i in range((len(s)-1)/20+1):
-          out.write('%s\n'%s[i*20:min(len(s),(i+1)*20)])
-        out.write('''
+	for i in range((len(s)-1)/20+1):
+	  out.write('%s\n'%s[i*20:min(len(s),(i+1)*20)])
+	out.write('''
 
         ###################################
         #  Assigned chemical shift lists  #
@@ -3534,383 +3531,380 @@ save_assigned_chem_shift_list_1
       _Chem_shift_ambiguity_code
 
 ''')
-        cnt=1
-        for i in range(len(s)):
-          res=str(i+1)
-          if res in self.moldba:
-            shdct=self.moldba[res]
-            for at in shdct:
-                shave,shstd,rl3,ambc=shdct[at]
-                if at in lacsoffs:refsh=shave+lacsoffs[at]
-                else:refsh=shave
-                if shstd==None:
-                  if at[0] in 'CN':shstd=0.3
-                  else:shstd=0.05
-                data=(cnt,res,res,rl3,at,at[0],refsh,shstd,ambc);print(data)
-                out.write('     %4d %3s %3s %3s %-4s %1s %7.3f %4.2f %1s\n'%data)
-                cnt+=1
-        out.write('''
+	cnt=1
+	for i in range(len(s)):
+	  res=str(i+1)
+	  if res in self.moldba:
+	    shdct=self.moldba[res]
+	    for at in shdct:
+		shave,shstd,rl3,ambc=shdct[at]
+		if at in lacsoffs:refsh=shave+lacsoffs[at]
+		else:refsh=shave
+		if shstd==None:
+		  if at[0] in 'CN':shstd=0.3
+		  else:shstd=0.05
+		data=(cnt,res,res,rl3,at,at[0],refsh,shstd,ambc);print data
+		out.write('     %4d %3s %3s %3s %-4s %1s %7.3f %4.2f %1s\n'%data)
+		cnt+=1
+	out.write('''
 
    stop_
 
 save_
 ''')
-        out.close()
+	out.close()
 
     def writeShiftY(self,out):
-        header='#NUM AA HA CA CB CO N HN'
+	header='#NUM AA HA CA CB CO N HN'
         bbatns =['HA','CA','CB','C','N','H']##,'HA3','HB','HB2','HB3']
-        out.write(header+'\n')
-        seq=self.seq
-        for i in range(1,len(seq)-1):
-          res=str(i+1)
-          resi=seq[i]
-          out.write('%s %1s'%(res,resi))
-          if res in self.moldba:
-            shdct=self.moldba[res]
-            for at in bbatns:
-              sho=0.0
-              if resi=='G' and at=='HA':
-                if 'HA2' in shdct and 'HA3' in shdct:
-                  sho=(shdct['HA2'][0]+shdct['HA3'][0])/2
-              if at in shdct:
-                sho=shdct[at][0]
-              out.write(' %7.3f'%sho)
-          out.write('\n')
+	out.write(header+'\n')
+	seq=self.seq
+	for i in range(1,len(seq)-1):
+	  res=str(i+1)
+	  resi=seq[i]
+	  out.write('%s %1s'%(res,resi))
+	  if res in self.moldba:
+	    shdct=self.moldba[res]
+	    for at in bbatns:
+	      sho=0.0
+	      if resi=='G' and at=='HA':
+		if 'HA2' in shdct and 'HA3' in shdct:
+		  sho=(shdct['HA2'][0]+shdct['HA3'][0])/2
+	      if at in shdct:
+		sho=shdct[at][0]
+	      out.write(' %7.3f'%sho)
+	  out.write('\n')
 
     def cmp2pred1(self,verb=False):
-        seq=self.seq
+	seq=self.seq
         predshiftdct=potenci(seq,self.pH,self.temperature,self.ion)
         bbatns0=['C','CA','CB','HA','H','N']
         bbatns =['C','CA','CB','HA','H','N','HB']##'HA2','HA3','HB','HB2','HB3']
         ##bbatns =['C','CA','CB','H','N']##'HA2','HA3','HB','HB2','HB3']
-        cmpdct={}
-        self.shiftdct={}
-        for i in range(1,len(seq)-1):
-          res=str(i+1)
-          ##if res in self.moldba:
-          if res in self.moldba and seq[i] in aa1s:
-            trip=seq[i-1]+seq[i]+seq[i+1]
-            shdct=self.moldba[res]
-            for at in bbatns:
-              sho=None
-              if at in shdct:
-                sho=shdct[at][0]
-              elif seq[i]=='G' and at=='HA' or at=='HB':
-                shs=[]
-                for pref in '23':
-                  atp=at+pref
-                  if atp in shdct:
-                    shs.append(shdct[atp][0])
-                if len(shs)>0:sho=average(shs)
-              if sho!=None:
-                if i==1:
-                  pent='n'+     trip+seq[i+2]
-                elif i==len(seq)-2:
-                  pent=seq[i-2]+trip+'c'
-                else:
-                  pent=seq[i-2]+trip+seq[i+2]
-                ##shp=refinedpred(paramdct[at],pent,at,tempdct,self.temperature)
-                if not (seq[i]=='C' and at in ('CA','CB')):
-                 shp=predshiftdct[(i+1,seq[i])][at]
-                 if shp!=None:
-                  self.shiftdct[(i,at)]=[sho,pent]
-                  diff=sho-shp
-                  if verb:print('diff is:',self.bmrID,i,seq[i],at,sho,shp,abs(diff),diff)
-                  if not at in cmpdct:cmpdct[at]={}
-                  cmpdct[at][i]=diff
-        return cmpdct
+	cmpdct={}
+	self.shiftdct={}
+	for i in range(1,len(seq)-1):
+	  res=str(i+1)
+	  ##if res in self.moldba:
+	  if res in self.moldba and seq[i] in aa1s:
+	    trip=seq[i-1]+seq[i]+seq[i+1]
+	    shdct=self.moldba[res]
+	    for at in bbatns:
+	      sho=None
+	      if at in shdct:
+		sho=shdct[at][0]
+	      elif seq[i]=='G' and at=='HA' or at=='HB':
+		shs=[]
+		for pref in '23':
+		  atp=at+pref
+		  if atp in shdct:
+		    shs.append(shdct[atp][0])
+		if len(shs)>0:sho=average(shs)
+	      if sho<>None:
+		if i==1:
+		  pent='n'+     trip+seq[i+2]
+		elif i==len(seq)-2:
+		  pent=seq[i-2]+trip+'c'
+		else:
+		  pent=seq[i-2]+trip+seq[i+2]
+		##shp=refinedpred(paramdct[at],pent,at,tempdct,self.temperature)
+		if not (seq[i]=='C' and at in ('CA','CB')):
+		 shp=predshiftdct[(i+1,seq[i])][at]
+		 if shp<>None:
+		  self.shiftdct[(i,at)]=[sho,pent]
+		  diff=sho-shp
+		  if verb:print 'diff is:',self.bmrID,i,seq[i],at,sho,shp,abs(diff),diff
+		  if not at in cmpdct:cmpdct[at]={}
+		  cmpdct[at][i]=diff
+	return cmpdct
 
     def visresults(self,dct,doplot=True,dataset=None,offdct=None,label='',minAIC=999.0,lacsoffs=None,cdfthr=6.0):##6.0):#was minAIC=9.0
-        shout=open('shifts%s.txt'%self.bmrID,'w')
+	shout=open('shifts%s.txt'%self.bmrID,'w')
         bbatns=['C','CA','CB','HA','H','N','HB']
-        cols='brkgcmy'
-        refined_weights={'C':0.1846,'CA':0.1982,'CB':0.1544,'HA':0.02631,'H':0.06708,'N':0.4722,'HB':0.02154}
-        outlivals={'C':5.0000,'CA':7.0000,'CB':7.0000,'HA':1.80,   'H':2.30,   'N':12.00, 'HB':1.80}
-        dats={}
-        maxi=max([max(dct[at].keys()) for at in dct])
-        mini=min([min(dct[at].keys()) for at in dct])#is often 1
-        nres=maxi-mini+1
-        resids=list(range(mini+1,maxi+2))
-        self.mini=mini
-        tot=zeros(nres)
-        newtot=zeros(nres)
-        newtotsgn=zeros(nres)
-        newtotsgn1=zeros(nres)
-        newtotsgn2=zeros(nres)
-        totnum=zeros(nres)
-        allrmsd=[]
-        totbbsh=0
-        oldct={}
-        allruns=zeros(nres)
-        rdct={}
-        sgnw={'C':1.0,'CA':1.0,'CB':-1.0,'HA':-1.0,'H':-1.0,'N':-1.0,'HB':1.0}#was 'HB':0.0
-        ##wbuf=initfil2('weights_oplsda123new7');wdct={}
+	cols='brkgcmy'
+	refined_weights={'C':0.1846,'CA':0.1982,'CB':0.1544,'HA':0.02631,'H':0.06708,'N':0.4722,'HB':0.02154}
+	outlivals={'C':5.0000,'CA':7.0000,'CB':7.0000,'HA':1.80,   'H':2.30,   'N':12.00, 'HB':1.80}
+	dats={}
+	maxi=max([max(dct[at].keys()) for at in dct])
+	mini=min([min(dct[at].keys()) for at in dct])#is often 1
+	nres=maxi-mini+1
+	resids=range(mini+1,maxi+2)
+	self.mini=mini
+	tot=zeros(nres)
+	newtot=zeros(nres)
+	newtotsgn=zeros(nres)
+	newtotsgn1=zeros(nres)
+	newtotsgn2=zeros(nres)
+	totnum=zeros(nres)
+	allrmsd=[]
+	totbbsh=0
+	oldct={}
+	allruns=zeros(nres)
+	rdct={}
+	sgnw={'C':1.0,'CA':1.0,'CB':-1.0,'HA':-1.0,'H':-1.0,'N':-1.0,'HB':1.0}#was 'HB':0.0
+	##wbuf=initfil2('weights_oplsda123new7');wdct={}
         wbuf=[['weights:', 'N', '-0.0626', '0.0617', '0.2635'], ['weights:', 'C', '0.2717', '0.2466', '0.0306'], ['weights:', 'CA', '0.2586', '0.2198', '0.0394'], ['weights:', 'CB', '-0.2635', '0.1830', '-0.1877'], ['weights:', 'H', '-0.3620', '1.3088', '0.3962'], ['weights:', 'HA', '-1.0732', '0.4440', '-0.4673'], ['weights:', 'HB', '0.5743', '0.2262', '-0.3388']]
         wdct={}
-        for lin in wbuf:wdct[lin[1]]=[eval(lin[n]) for n in (2,3,4)]#lin[2] is first component
-        for at in dct:
-          vol=outlivals[at]
-          subtot=zeros(nres)
-          subtot1=zeros(nres)
-          subtot2=zeros(nres)
-          if dataset!=None:dataset[at][self.bmrID]=[]
-          A=array(list(dct[at].items()))
-          totbbsh+=len(A)
-          I=bbatns.index(at)
-          w=refined_weights[at]
-          shw=A[:,1]/w
-          off=average(shw)
-          rms0=sqrt(average(shw**2))
-          if offdct!=None:
+	for lin in wbuf:wdct[lin[1]]=[eval(lin[n]) for n in (2,3,4)]#lin[2] is first component
+	for at in dct:
+	  vol=outlivals[at]
+	  subtot=zeros(nres)
+	  subtot1=zeros(nres)
+	  subtot2=zeros(nres)
+	  if dataset<>None:dataset[at][self.bmrID]=[]
+	  A=array(dct[at].items())
+	  totbbsh+=len(A)
+	  I=bbatns.index(at)
+	  w=refined_weights[at]
+	  shw=A[:,1]/w
+	  off=average(shw)
+	  rms0=sqrt(average(shw**2))
+	  if offdct<>None:
             shw-=offdct[at]#offset correction
             ##print 'using predetermined offset correction',at,offdct[at],offdct[at]*w
-          ##shw-=off
-          shwl=list(shw)
-          for i in range(len(A)):
-            resi=int(A[i][0])-mini#minimum value for resi is 0
-            ashwi=abs(shw[i])
-            if ashwi>cdfthr:oldct[(at,resi)]=ashwi
-            tot[resi]+=(min(4.0,ashwi)**2)
-            for k in [-1,0,1]:
-              if 0<=resi+k<len(subtot):##maxi:
-                ##subtot[resi+k]+=(shw[i]*w*wdct[at][0])
-                subtot[resi+k]+=(clip(shw[i]*w,-vol,vol)*wdct[at][0])
-                ##subtot1[resi+k]+=(shw[i]*w*wdct[at][1])
-                subtot1[resi+k]+=(clip(shw[i]*w,-vol,vol)*wdct[at][1])
-                subtot2[resi+k]+=(clip(shw[i]*w,-vol,vol)*wdct[at][2])
-            totnum[resi]+=1
-            if offdct==None:
-              if 3<i<len(A)-4:
-                vals=shw[i-4:i+5]
-                runstd=std(vals)
-                allruns[resi]+=runstd
-                if not resi in rdct:rdct[resi]={}
-                rdct[resi][at]=average(vals),sqrt(average(vals**2)),runstd
-          dats[at]=shw
-          stdw=std(shw)
-          dAIC=log(rms0/stdw)*len(A)-1
-          ##print 'rmsd:',at,stdw,off,dAIC
-          allrmsd.append(std(shw))
-          if doplot:
-            subplot(511)
-            ##sca=scatter(A[:,0]+1,shw,alpha=0.5,s=25,edgecolors='k',c=cols[I])
-            sca=scatter(A[:,0]+1,shw*w*wdct[at][0]*16,alpha=0.5,s=25,edgecolors='k',c=cols[I])
-            plot((mini+1,maxi+1),[0.0,0.0],'k--')
-            axis([mini+1,max(resids),-20,20])
-          newtot+=((subtot/3.0)**2)
-          newtotsgn+=subtot
-          newtotsgn1+=subtot1
-          newtotsgn2+=subtot2
-        T0=list(tot/totnum)
-        cdfs=convChi2CDF(tot,totnum)
-        Th=list(tot/totnum*0.5)
-        tot3=array([0,0]+Th)+array([0]+T0+[0])+array(Th+[0,0])
-        Ts=list(tot)
-        Tn=list(totnum)
-        tot3f=array([0,0]+Ts)+array([0]+Ts+[0])+array(Ts+[0,0])
-        totn3f=array([0,0]+Tn)+array([0]+Tn+[0])+array(Tn+[0,0])
-        cdfs3=convChi2CDF(tot3f[1:-1],totn3f[1:-1])
-        newrms=(newtot*3)/totn3f[1:-1]
-        newcdfs=convChi2CDF(newtot*3,totn3f[1:-1])
+	  ##shw-=off
+	  shwl=list(shw)
+	  for i in range(len(A)):
+	    resi=int(A[i][0])-mini#minimum value for resi is 0
+	    ashwi=abs(shw[i])
+	    if ashwi>cdfthr:oldct[(at,resi)]=ashwi
+	    tot[resi]+=(min(4.0,ashwi)**2)
+	    for k in [-1,0,1]:
+	      if 0<=resi+k<len(subtot):##maxi:
+	        ##subtot[resi+k]+=(shw[i]*w*wdct[at][0])
+	        subtot[resi+k]+=(clip(shw[i]*w,-vol,vol)*wdct[at][0])
+	        ##subtot1[resi+k]+=(shw[i]*w*wdct[at][1])
+	        subtot1[resi+k]+=(clip(shw[i]*w,-vol,vol)*wdct[at][1])
+	        subtot2[resi+k]+=(clip(shw[i]*w,-vol,vol)*wdct[at][2])
+	    totnum[resi]+=1
+	    if offdct==None:
+	      if 3<i<len(A)-4:
+		vals=shw[i-4:i+5]
+		runstd=std(vals)
+		allruns[resi]+=runstd
+		if not resi in rdct:rdct[resi]={}
+		rdct[resi][at]=average(vals),sqrt(average(vals**2)),runstd
+	  dats[at]=shw
+	  stdw=std(shw)
+	  dAIC=log(rms0/stdw)*len(A)-1
+	  ##print 'rmsd:',at,stdw,off,dAIC
+	  allrmsd.append(std(shw))
+	  if doplot:
+	    subplot(511)
+	    ##sca=scatter(A[:,0]+1,shw,alpha=0.5,s=25,faceted=False,c=cols[I])
+	    sca=scatter(A[:,0]+1,shw*w*wdct[at][0]*16,alpha=0.5,s=25,faceted=False,c=cols[I])
+	    plot((mini+1,maxi+1),[0.0,0.0],'k--')
+	    axis([mini+1,max(resids),-20,20])
+	  newtot+=((subtot/3.0)**2)
+	  newtotsgn+=subtot
+	  newtotsgn1+=subtot1
+	  newtotsgn2+=subtot2
+	T0=list(tot/totnum)
+	cdfs=convChi2CDF(tot,totnum)
+	Th=list(tot/totnum*0.5)
+	tot3=array([0,0]+Th)+array([0]+T0+[0])+array(Th+[0,0])
+	Ts=list(tot)
+	Tn=list(totnum)
+	tot3f=array([0,0]+Ts)+array([0]+Ts+[0])+array(Ts+[0,0])
+	totn3f=array([0,0]+Tn)+array([0]+Tn+[0])+array(Tn+[0,0])
+	cdfs3=convChi2CDF(tot3f[1:-1],totn3f[1:-1])
+	newrms=(newtot*3)/totn3f[1:-1]
+	newcdfs=convChi2CDF(newtot*3,totn3f[1:-1])
         avc=average(cdfs3[cdfs3<20.0])
         numzs=len(cdfs3[cdfs3<20.0])
         numzslt3=len(cdfs3[cdfs3<cdfthr])
         stdcp=std(cdfs3[cdfs3<20.0])
-        atot=sqrt(tot3/2)[1:-1]
-        aresids=array(resids)
-        if offdct==None:
-          tr=(allruns/totnum)[4:-4]
-          offdct={}
-          mintr=None;minval=999
-          for j in range(len(tr)):
-            if j+4 in rdct and len(rdct[j+4])==len(dct):#all ats must be represented for this res
-            ##if j+4 in rdct and len(rdct[j+4])>=len(dct)-1:#all ats (except one as max) must be represented for this res
-              if tr[j]<minval:
-                minval=tr[j]
-                mintr=j
-          if mintr==None:return None#still not found
-          print(len(tr),len(resids[4:-4]),len(atot),mintr+4,min(tr),tr[mintr])##,tr
-          for at in rdct[mintr+4]:
-            roff,std0,stdc=rdct[mintr+4][at]
-            dAIC=log(std0/stdc)*9-1
-            print('minimum running average',at,roff,dAIC)
-            if dAIC>minAIC:
-              print('using offset correction:',at,roff,dAIC,self.bmrID,label)
-              offdct[at]=roff
-            else:
-              print('rejecting offset correction due to low dAIC:',at,roff,dAIC,self.bmrID,label)
-              offdct[at]=0.0
-          return offdct #with the running offsets
-        if dataset!=None:
-          csgns= newtotsgn/totn3f[1:-1]*10
-          csgnsq=newtotsgn/sqrt(totn3f[1:-1])*10
-          for I in range(len(resids)):
-            pass##print 'datapoints:',self.bmrID,resids[I],csgns[I],cdfs3[I],csgnsq[I],totn3f[1:-1][I]
-        if doplot:
-          subplot(512)
-          plot(resids,newtotsgn/sqrt(totn3f[1:-1])*8.0,'r-')
-          plot(resids,newtotsgn1/sqrt(totn3f[1:-1])*8.0,'b-')
-          ##plot(resids,newtotsgn2/sqrt(totn3f[1:-1])*8.0,'m-') #PC3
-          plot(resids,cdfs3,'k-')
-          ##plot((mini+1,maxi+1),[cdfthr,cdfthr],'g--')
-          plot((mini+1,maxi+1),[8.0,8.0],'g--')
-          plot((mini+1,maxi+1),[0.0,0.0],'k--')
-          axis([mini+1,max(resids),-16,16])
-          title('CheSPI components CheZOD Z-scores for: %s'%self.bmrID)
-        if True:
-         sferr3=0.0
-         for at in dats:
-          I=bbatns.index(at)
-          ashw=abs(dats[at])
-          Terr=linspace(0.0,5.0,26)
-          ferr=array([sum(ashw>T) for T in Terr])*1.0/len(ashw)+0.000001
-          sferr3+=ferr[15]#3.0std-fractile
-         aferr3=sferr3/len(dats)
-         F=zeros(2)
-         for at in dats:
-          ashw=abs(dats[at])
-          fners=sum(ashw>1.0)*1.0/len(ashw),sum(ashw>2.0)*1.0/len(ashw)
-          ##print 'fnormerr:',at,fners[0],fners[1]
-          F+=fners
-         totnorm=sum(atot>1.5)*1.0/len(atot)
-         outli0=aresids[atot>1.5]
-         outli1=aresids[cdfs>cdfthr]
-         outli3=aresids[cdfs3>cdfthr]
-         newoutli3=aresids[newcdfs>cdfthr]
-         finaloutli=[i+mini+1 for i in range(nres) if cdfs[i]>cdfthr or cdfs3[i]>cdfthr and cdfs[i]>0.0 and totnum[i]>0]
-         ##print 'outliers:',self.bmrID,len(outli0),len(outli1),len(outli3),len(finaloutli),sum(totnum==0)##,finaloutli
-         Fa=F/len(dats)
-         fout=len(finaloutli)*1.0/nres
-         print(len(oldct),mini,maxi,nres,aresids[totnum==0])
-         print('self.moldba',self.moldba.counts.values())
-         print('self.moldba',self.moldba.counts)
-         print('self.moldba.counts.values()',list(self.moldba.counts.values()))
-         print('summary_stat: %5s %5d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %4d'%\
-          (self.bmrID,sum(list(self.moldba.counts.values())),average(allrmsd),Fa[0],Fa[1],fout,aferr3,totnorm,totbbsh))
+	atot=sqrt(tot3/2)[1:-1]
+	aresids=array(resids)
+	if offdct==None:
+	  tr=(allruns/totnum)[4:-4]
+	  offdct={}
+	  mintr=None;minval=999
+	  for j in range(len(tr)):
+	    if j+4 in rdct and len(rdct[j+4])==len(dct):#all ats must be represented for this res
+	    ##if j+4 in rdct and len(rdct[j+4])>=len(dct)-1:#all ats (except one as max) must be represented for this res
+	      if tr[j]<minval:
+		minval=tr[j]
+		mintr=j
+	  if mintr==None:return None#still not found
+	  print len(tr),len(resids[4:-4]),len(atot),mintr+4,min(tr),tr[mintr]##,tr
+	  for at in rdct[mintr+4]:
+	    roff,std0,stdc=rdct[mintr+4][at]
+	    dAIC=log(std0/stdc)*9-1
+	    print 'minimum running average',at,roff,dAIC
+	    if dAIC>minAIC:
+	      print 'using offset correction:',at,roff,dAIC,self.bmrID,label
+	      offdct[at]=roff
+	    else:
+	      print 'rejecting offset correction due to low dAIC:',at,roff,dAIC,self.bmrID,label
+	      offdct[at]=0.0
+	  return offdct #with the running offsets
+	if dataset<>None:
+	  csgns= newtotsgn/totn3f[1:-1]*10
+	  csgnsq=newtotsgn/sqrt(totn3f[1:-1])*10
+	  for I in range(len(resids)):
+	    pass##print 'datapoints:',self.bmrID,resids[I],csgns[I],cdfs3[I],csgnsq[I],totn3f[1:-1][I]
+	if doplot:
+	  subplot(512)
+	  plot(resids,newtotsgn/sqrt(totn3f[1:-1])*8.0,'r-')
+	  plot(resids,newtotsgn1/sqrt(totn3f[1:-1])*8.0,'b-')
+	  ##plot(resids,newtotsgn2/sqrt(totn3f[1:-1])*8.0,'m-') #PC3
+	  plot(resids,cdfs3,'k-')
+	  ##plot((mini+1,maxi+1),[cdfthr,cdfthr],'g--')
+	  plot((mini+1,maxi+1),[8.0,8.0],'g--')
+	  plot((mini+1,maxi+1),[0.0,0.0],'k--')
+	  axis([mini+1,max(resids),-16,16])
+	  title('CheSPI components CheZOD Z-scores for: %s'%self.bmrID)
+	if True:
+	 sferr3=0.0
+	 for at in dats:
+	  I=bbatns.index(at)
+	  ashw=abs(dats[at])
+	  Terr=linspace(0.0,5.0,26)
+	  ferr=array([sum(ashw>T) for T in Terr])*1.0/len(ashw)+0.000001
+	  sferr3+=ferr[15]#3.0std-fractile
+	 aferr3=sferr3/len(dats)
+	 F=zeros(2)
+	 for at in dats:
+	  ashw=abs(dats[at])
+	  fners=sum(ashw>1.0)*1.0/len(ashw),sum(ashw>2.0)*1.0/len(ashw)
+	  ##print 'fnormerr:',at,fners[0],fners[1]
+	  F+=fners
+	 totnorm=sum(atot>1.5)*1.0/len(atot)
+	 outli0=aresids[atot>1.5]
+	 outli1=aresids[cdfs>cdfthr]
+	 outli3=aresids[cdfs3>cdfthr]
+	 newoutli3=aresids[newcdfs>cdfthr]
+	 finaloutli=[i+mini+1 for i in range(nres) if cdfs[i]>cdfthr or cdfs3[i]>cdfthr and cdfs[i]>0.0 and totnum[i]>0]
+	 ##print 'outliers:',self.bmrID,len(outli0),len(outli1),len(outli3),len(finaloutli),sum(totnum==0)##,finaloutli
+	 Fa=F/len(dats)
+	 fout=len(finaloutli)*1.0/nres
+	 print len(oldct),mini,maxi,nres,aresids[totnum==0]
+	 print 'summary_stat: %5s %5d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %4d'%\
+	  (self.bmrID,sum(self.moldba.counts.values()),average(allrmsd),Fa[0],Fa[1],fout,aferr3,totnorm,totbbsh)
 
-        #now accumulate the validated data
-        atns=list(dct.keys())
-        accdct=dict(list(zip(atns,[[] for _ in atns])))
-        numol=0
-        iatns=list(self.shiftdct.keys());iatns.sort()
-        for i,at in iatns:#i is seq enumeration (starting from 0, but terminal allways excluded)
-          I=bbatns.index(at)
-          w=refined_weights[at]
-          ol=False
-          if i+1 in finaloutli:ol=True
-          elif (at,i-mini) in oldct:ol=True
-          if not ol:
-                accdct[at].append(dct[at][i])
-          else:numol+=1
-          if dataset!=None:
-            dataset[at][self.bmrID].append(self.shiftdct[(i,at)]+[ol])
-            vals=dataset[at][self.bmrID][-1]
-            shout.write('%3d %2s %7.3f %5s %6.3f\n'%(i+1,at,vals[0],vals[1],dct[at][i]))
-        sumrmsd=0.0;totsh=0
-        newoffdct={}
-        for at in accdct:
-          I=bbatns.index(at)
-          w=refined_weights[at]
-          vals=accdct[at]
-          vals=array(vals)/w
-          anum=len(vals)
-          if anum==0:newoffdct[at]=0.0
-          else:
-            aoff=average(vals)
-            astd0=sqrt(average(array(vals)**2))
-            astdc=std(vals)
-            adAIC=log(astd0/astdc)*anum-1
-            if adAIC<minAIC or anum<4:
-              print('rejecting offset correction due to low adAIC:',at,aoff,adAIC,anum,self.bmrID,label, end=' ')
-              if lacsoffs!=None and at in lacsoffs:print('LACS',lacsoffs[at],-aoff*w)
-              else:print()
-              astdc=astd0
-              aoff=0.0
-              shout.write('off %2s   0.0\n'%at)
-            else:
-              print('using offset correction:',at,aoff,adAIC,anum,self.bmrID,label, end=' ')
-              if lacsoffs!=None and at in lacsoffs:print('LACS',lacsoffs[at],-aoff*w)
-              else:print()
-              shout.write('off %2s %7.3f\n'%(at,aoff*w))
-            sumrmsd+=(astdc*anum);totsh+=anum
-            ##print 'accepted stats: %2s %3d %6.3f %5.3f %5.3f %6.3f'%(at,anum,aoff,astd0,astdc,adAIC)
-            newoffdct[at]=aoff
+	#now accumulate the validated data
+	atns=dct.keys()
+	accdct=dict(zip(atns,[[] for _ in atns]))
+	numol=0
+	iatns=self.shiftdct.keys();iatns.sort()
+	for i,at in iatns:#i is seq enumeration (starting from 0, but terminal allways excluded)
+	  I=bbatns.index(at)
+	  w=refined_weights[at]
+	  ol=False
+	  if i+1 in finaloutli:ol=True
+	  elif (at,i-mini) in oldct:ol=True
+	  if not ol:
+		accdct[at].append(dct[at][i])
+	  else:numol+=1
+	  if dataset<>None:
+	    dataset[at][self.bmrID].append(self.shiftdct[(i,at)]+[ol])
+	    vals=dataset[at][self.bmrID][-1]
+	    shout.write('%3d %2s %7.3f %5s %6.3f\n'%(i+1,at,vals[0],vals[1],dct[at][i]))
+	sumrmsd=0.0;totsh=0
+	newoffdct={}
+	for at in accdct:
+	  I=bbatns.index(at)
+	  w=refined_weights[at]
+	  vals=accdct[at]
+	  vals=array(vals)/w
+	  anum=len(vals)
+	  if anum==0:newoffdct[at]=0.0
+	  else:
+	    aoff=average(vals)
+	    astd0=sqrt(average(array(vals)**2))
+	    astdc=std(vals)
+	    adAIC=log(astd0/astdc)*anum-1
+	    if adAIC<minAIC or anum<4:
+	      print 'rejecting offset correction due to low adAIC:',at,aoff,adAIC,anum,self.bmrID,label,
+	      if lacsoffs<>None and at in lacsoffs:print 'LACS',lacsoffs[at],-aoff*w
+	      else:print
+	      astdc=astd0
+	      aoff=0.0
+	      shout.write('off %2s   0.0\n'%at)
+	    else:
+	      print 'using offset correction:',at,aoff,adAIC,anum,self.bmrID,label,
+	      if lacsoffs<>None and at in lacsoffs:print 'LACS',lacsoffs[at],-aoff*w
+	      else:print
+	      shout.write('off %2s %7.3f\n'%(at,aoff*w))
+	    sumrmsd+=(astdc*anum);totsh+=anum
+	    ##print 'accepted stats: %2s %3d %6.3f %5.3f %5.3f %6.3f'%(at,anum,aoff,astd0,astdc,adAIC)
+	    newoffdct[at]=aoff
         compl=calc_complexity(cdfs3,self.bmrID,thr=cdfthr)
-        fullrmsd=average(allrmsd)
-        ps=self.phys_state
-        ps6=ps.strip("'")[:6]
-        fraczlt3=numzslt3*1.0/numzs
-        if totsh==0:avewrmsd,fracacc=9.99,0.0
-        else:avewrmsd,fracacc=sumrmsd/totsh,totsh/(0.0+totsh+numol)
-        allsh=sum(totnum)
-        ratsh=allsh*1.0/numzs
-        print('finalstats %5s %8s %6s %7.4f %6.4f %6.4f %4d %4d %4d %7.3f %3d %3d %4d %6.4f %6.4f %7.3f %8.5f'\
-         %(self.bmrID,label,ps6,avewrmsd,fullrmsd,fracacc,nres,totsh,numol,avc,numzs,numzslt3,allsh,fraczlt3,ratsh,stdcp,compl))##,
-        if dataset!=None:
-          fracol3=len(outli3)*1.0/len(totnum>0)
-          newfracol3=len(newoutli3)*1.0/len(totnum>0)
-          if newfracol3<=0:lratf=0.0
-          else:lratf=log(fracol3/newfracol3)
-          ##print 'fraccdfs3gt3 %5s %7.4f %7.4f %6.3f'%(self.bmrID,fracol3,newfracol3,lratf)
-          if doplot:
-            subplot(511)
-            ##title('%5s %5.3f %5.3f '%(self.bmrID,1-fracol3,compl)+self.title[:60])
-            title('Weighted secondary chemical shifts for: %s'%self.bmrID)
-          ##return cdfs3,newtotsgn/sqrt(totn3f[1:-1])*8.0,newtotsgn1/sqrt(totn3f[1:-1])*8.0
-          return resids,cdfs3,newtotsgn/sqrt(totn3f[1:-1])*8.0,newtotsgn1/sqrt(totn3f[1:-1])*8.0,newtotsgn2/sqrt(totn3f[1:-1])*8.0
-        print()
-        return avewrmsd,fracacc,newoffdct,cdfs3 #offsets from accepted stats
-        
+	fullrmsd=average(allrmsd)
+	ps=self.phys_state
+	ps6=ps.strip("'")[:6]
+	fraczlt3=numzslt3*1.0/numzs
+	if totsh==0:avewrmsd,fracacc=9.99,0.0
+	else:avewrmsd,fracacc=sumrmsd/totsh,totsh/(0.0+totsh+numol)
+	allsh=sum(totnum)
+	ratsh=allsh*1.0/numzs
+	print 'finalstats %5s %8s %6s %7.4f %6.4f %6.4f %4d %4d %4d %7.3f %3d %3d %4d %6.4f %6.4f %7.3f %8.5f'\
+	 %(self.bmrID,label,ps6,avewrmsd,fullrmsd,fracacc,nres,totsh,numol,avc,numzs,numzslt3,allsh,fraczlt3,ratsh,stdcp,compl)##,
+	if dataset<>None:
+	  fracol3=len(outli3)*1.0/len(totnum>0)
+	  newfracol3=len(newoutli3)*1.0/len(totnum>0)
+	  if newfracol3<=0:lratf=0.0
+	  else:lratf=log(fracol3/newfracol3)
+	  ##print 'fraccdfs3gt3 %5s %7.4f %7.4f %6.3f'%(self.bmrID,fracol3,newfracol3,lratf)
+	  if doplot:
+	    subplot(511)
+	    ##title('%5s %5.3f %5.3f '%(self.bmrID,1-fracol3,compl)+self.title[:60])
+	    title('Weighted secondary chemical shifts for: %s'%self.bmrID)
+	  ##return cdfs3,newtotsgn/sqrt(totn3f[1:-1])*8.0,newtotsgn1/sqrt(totn3f[1:-1])*8.0
+	  return resids,cdfs3,newtotsgn/sqrt(totn3f[1:-1])*8.0,newtotsgn1/sqrt(totn3f[1:-1])*8.0,newtotsgn2/sqrt(totn3f[1:-1])*8.0
+	print
+	return avewrmsd,fracacc,newoffdct,cdfs3 #offsets from accepted stats
+	
     def savedata(self,cdfs3,pc1ws,pc2ws,pc3ws):
-        ##out=open('zscores%s.txt'%self.bmrID,'w')
-        out=open('components%s.txt'%self.bmrID,'w')
-        s=self.seq
-        for i,x in enumerate(cdfs3):
-          if x<99:#not nan
-            I=i+self.mini
-            aai=s[I]
-            pci1=pc1ws[i]
-            pci2=pc2ws[i]
-            pci3=pc3ws[i]
-            ##out.write('%s %3d %6.3f %6.3f %6.3f\n'%(aai,I+1,x,pci1,pci2))
-            out.write('%s %3d %6.3f %6.3f %6.3f %6.3f\n'%(aai,I+1,x,pci1,pci2,pci3))
-        out.close()
+	##out=open('zscores%s.txt'%self.bmrID,'w')
+	out=open('components%s.txt'%self.bmrID,'w')
+	s=self.seq
+	for i,x in enumerate(cdfs3):
+	  if x<99:#not nan
+	    I=i+self.mini
+	    aai=s[I]
+	    pci1=pc1ws[i]
+	    pci2=pc2ws[i]
+	    pci3=pc3ws[i]
+	    ##out.write('%s %3d %6.3f %6.3f %6.3f\n'%(aai,I+1,x,pci1,pci2))
+	    out.write('%s %3d %6.3f %6.3f %6.3f %6.3f\n'%(aai,I+1,x,pci1,pci2,pci3))
+	out.close()
 
 def calc_borders(c,ID,thr=3.0,lim=10,lim2=10,verb=False):
     a=''
     for x in c:
-        if x<thr:a+='0'
-        elif x>=thr:a+='1'
-        else:a+='-'
+	if x<thr:a+='0'
+	elif x>=thr:a+='1'
+	else:a+='-'
     ##a='00000000000000000111111100000----0000000111111111111111111111110000-0000-00000011111--1111111000'
     borders=[]
     prev='-'
     nancounts=[0]
     for i,x in enumerate(a):
-      if x!=prev and prev!='-' and x!='-':
-        borders.append(i)
-        nancounts.append(0)
-      if x!='-':prev=x
+      if x<>prev and prev<>'-' and x<>'-':
+	borders.append(i)
+	nancounts.append(0)
+      if x<>'-':prev=x
       else:nancounts[-1]+=1
     N=len(a)
     first=a[0]
-    ni=first!='0'
+    ni=first<>'0'
     b0=array([0]+borders)
     b1=array(borders+[N])
     d=b1-b0
     if verb:
-      print(borders)
-      print(d)
-      print(nancounts)
+      print borders
+      print d
+      print nancounts
     lst=[]
     for j,dj in enumerate(d):
       if j%2==ni and dj>lim:
        if dj-nancounts[j]>lim2:
-        if verb:print('idrs:',ID,j,dj,b0[j:j+2],dj-nancounts[j])
-        lst.append((dj,dj-nancounts[j],b0[j:j+2]))
-        if nancounts[j]>0:
-          print('testidrs:',ID,lim,lim2,j,dj,b0[j:j+2],dj-nancounts[j])
+	if verb:print 'idrs:',ID,j,dj,b0[j:j+2],dj-nancounts[j]
+	lst.append((dj,dj-nancounts[j],b0[j:j+2]))
+	if nancounts[j]>0:
+	  print 'testidrs:',ID,lim,lim2,j,dj,b0[j:j+2],dj-nancounts[j]
     return lst
 ##calc_borders([0,6],'test',lim=15,lim2=11,verb=True)
 ##1/0
@@ -3922,20 +3916,20 @@ def calc_complexity(c,ID,thr=3.0,ret=1,verb=False):
     else:
      a=''
      for x in c:
-        if x<thr:a+='0'
-        elif x>=thr:a+='1'
-        else:a+='-'
+	if x<thr:a+='0'
+	elif x>=thr:a+='1'
+	else:a+='-'
     ##a='000000000000000001111111000000000----000000000001111111111111111111111100000000000000111111111111'
     ##print 'binstr:',a
     ##print a.count('-')
     borders=[]
     prev='-'
     for i,x in enumerate(a):
-      if x!=prev and prev!='-' and x!='-':
-        borders.append(i)
-      if x!='-':prev=x
-    if verb:print(len(borders))
-    if verb:print(borders)
+      if x<>prev and prev<>'-' and x<>'-':
+	borders.append(i)
+      if x<>'-':prev=x
+    if verb:print len(borders)
+    if verb:print borders
     N=len(a)
     b0=array([0]+borders)
     b1=array(borders+[N])
@@ -3946,44 +3940,44 @@ def calc_complexity(c,ID,thr=3.0,ret=1,verb=False):
     ##if isinstance(c[0],str):nonnans=array([True]*len(a))
     if isinstance(c[0],str):avc=9.999
     else:
-        nonnans=c<10.0
-        avc=average(c[nonnans])
-    if verb:print('entropy: %5s %7.4f %8.5f %6.3f'%(ID,entr,entr/N,avc))
+	nonnans=c<10.0
+	avc=average(c[nonnans])
+    if verb:print 'entropy: %5s %7.4f %8.5f %6.3f'%(ID,entr,entr/N,avc)
     if ret==1:return entr/N
     else:return entr/N,d
 
 def getCheZODandPCs(ID,usetcor=True,minAIC=5.0):
        bbatns=['C','CA','CB','HA','H','N','HB']
-       dataset=dict(list(zip(['HA','H','N','CA','CB','C','HB'],[{} for _ in range(7)])))
+       dataset=dict(zip(['HA','H','N','CA','CB','C','HB'],[{} for _ in range(7)]))
        refined_weights={'C':0.1846,'CA':0.1982,'CB':0.1544,'HA':0.02631,'H':0.06708,'N':0.4722,'HB':0.02154}
        sg=ShiftGetter(ID)
        if not usetcor:sg.temperature=298.0
        totsh=sum(sg.moldba.counts.values())
-       print(totsh,sg.seq)
+       print totsh,sg.seq
        if sg.moldba.counts['P']>1 or 'U' in sg.seq:
-        raise SystemExit('skipping DNA/RNA %s %s'%(ID,sg.title))
+	raise SystemExit,'skipping DNA/RNA %s %s'%(ID,sg.title)
        if len(sg.seq)<5:## or totsh/len(sg.seq)<1.5:
-        raise SystemExit('too short sequence or too few shifts %s %s'%(ID,sg.title))
+	raise SystemExit,'too short sequence or too few shifts %s %s'%(ID,sg.title)
        dct=sg.cmp2pred1()
-       totbbsh=sum([len(list(dct[at].keys())) for at in dct])
-       print('total backbone shifts:',totbbsh)
+       totbbsh=sum([len(dct[at].keys()) for at in dct])
+       print 'total backbone shifts:',totbbsh
        offr=sg.visresults(dct,False,minAIC=minAIC)
-       if offr!=None:
-         atns=list(offr.keys())
-         off0=dict(list(zip(atns,[0.0 for _ in atns])))
+       if offr<>None:
+         atns=offr.keys()
+         off0=dict(zip(atns,[0.0 for _ in atns]))
          armsdc,frac,noffc,cdfs3c=sg.visresults(dct,False,offdct=offr,label='ofcor',minAIC=minAIC)
        else:
-         print('warning: no running offset could be estimated',ID)
-         off0=dict(list(zip(bbatns,[0.0 for _ in bbatns])))
-         armsdc=999.9;frac=0.0
+	 print 'warning: no running offset could be estimated',ID
+         off0=dict(zip(bbatns,[0.0 for _ in bbatns]))
+	 armsdc=999.9;frac=0.0
        armsd0,fra0,noff0,cdfs30=sg.visresults(dct,False,offdct=off0,label='nocor',minAIC=minAIC)
        usefirst=armsd0/(0.01+fra0)<armsdc/(0.01+frac)
        av0=average(cdfs30[cdfs30<20.0])#to avoid nan
-       if offr!=None:
-        avc=average(cdfs3c[cdfs3c<20.0])
-        orusefirst=av0<avc
-        if usefirst!=orusefirst:print() #'warning hard decission',usefirst,orusefirst
-        ##print 'decide',orusefirst,ID,armsd0,fra0,av0,armsdc,frac,avc
+       if offr<>None:
+	avc=average(cdfs3c[cdfs3c<20.0])
+	orusefirst=av0<avc
+	if usefirst<>orusefirst:print #'warning hard decission',usefirst,orusefirst
+	##print 'decide',orusefirst,ID,armsd0,fra0,av0,armsdc,frac,avc
        else:orusefirst=True
        if orusefirst: #was usefirst
          ##resids,cdfs3,pc1ws,pc2ws=sg.visresults(dct,True,dataset,offdct=noff0,label='nocornew',minAIC=minAIC)
@@ -4011,7 +4005,7 @@ def getprobs(pc1,pc2):
     xmin, ymin = -18,-12
     x = arange(xmin, xmax, dx)[:-1]+dx/2.0
     y = arange(ymin, ymax, dy)[:-1]+dy/2.0
-    print(len(x),len(y))
+    print len(x),len(y)
     ##interp_splines = [RectBivariateSpline(y, x, N[:,:,n]) for n in range(3)]
     interp_splines = [RectBivariateSpline(y, x, N[:,:,n]) for n in range(4)]
     ##print('probabilies for reference below')
@@ -4038,15 +4032,15 @@ def viscolentry(ID,pref='',delta=0,doreturn=False,pdbID='',returnpcs=False):
     rgbs=getseccol(array(pc1s),array(pc2s))
     C=array(rgbs).transpose()
     if doreturn:
-        return resi,C,zsco
-        C3=zeros((len(C),1,3))
-        C3[:,0,:]=C
-        imshow(rot90(C3),interpolation='none');show();1/0
+	return resi,C,zsco
+	C3=zeros((len(C),1,3))
+	C3[:,0,:]=C
+	imshow(rot90(C3),interpolation='none');show();1/0
     for i,ri in enumerate(resi):
-        zi=zsco[i]
-        coli=C[i]
-        ##bari=bar(ri+0.5,zi,width=1.0,fc=coli,ec='none')
-        bari=bar(ri-0.5,zi,width=1.0,fc=coli,ec='none')
+	zi=zsco[i]
+	coli=C[i]
+	##bari=bar(ri+0.5,zi,width=1.0,fc=coli,ec='none')
+	bari=bar(ri-0.5,zi,width=1.0,fc=coli,ec='none')
     title(ID+'  '+pdbID)
     ##return resi,pc1s,pc2s,C
     return resi,pc1s,pc2s,C,zsco
@@ -4056,7 +4050,7 @@ def getramp(buf):
     dct={}
     for i in range(64):
       for j in range(4):
-        rgb=[float(x)/255 for x in buf[i][4*j+1:4*j+4]]
+        rgb=[string.atof(x)/255 for x in buf[i][4*j+1:4*j+4]]
         dct[i+j*64]=rgb
     return dct
 
@@ -4069,22 +4063,22 @@ def gencolpml(ID,pdbid='',delta=0):
     ##pmlfile=open('colCheZOD%s_%s.pml'%(ID,pdbid),'w')
     pmlfile=open('colCheSPI%s.pml'%ID,'w')
     for i,ri in enumerate(resi):
-        rgbi=coli[i]
-        ##print i,ri,rid,delta,rgbi,1/0
-        pmlfile.write('set_color coluser%d, '%ri)
-        pmlfile.write('[%5.3f, %5.3f, %5.3f]\n'%tuple(rgbi))
-        ##pmlfile.write('color coluser%d, resi %s and chain A and %s\n'%(ri,ri,pdbid))
-        pmlfile.write('color coluser%d, resi %s\n'%(ri,ri))
+	rgbi=coli[i]
+	##print i,ri,rid,delta,rgbi,1/0
+	pmlfile.write('set_color coluser%d, '%ri)
+	pmlfile.write('[%5.3f, %5.3f, %5.3f]\n'%tuple(rgbi))
+	##pmlfile.write('color coluser%d, resi %s and chain A and %s\n'%(ri,ri,pdbid))
+	pmlfile.write('color coluser%d, resi %s\n'%(ri,ri))
     pmlfile.close()
 
 def savecolors(resi,coli):
     outfile=open('colors%s.txt'%ID,'w')
     for i,ri in enumerate(resi):
-        rgbi=tuple(array(coli[i]*255,dtype=int))
-        hexstr='#%02x%02x%02x' % rgbi
-        outfile.write('%3d'%ri)
-        outfile.write(' '+hexstr)
-        outfile.write(' %3d %3d %3d\n'%rgbi)
+	rgbi=tuple(array(coli[i]*255,dtype=int))
+	hexstr='#%02x%02x%02x' % rgbi
+	outfile.write('%3d'%ri)
+	outfile.write(' '+hexstr)
+	outfile.write(' %3d %3d %3d\n'%rgbi)
 
 def visprobs(resi,probs,pid='',seq=None):
     outfile=open('populations%s.txt'%pid,'w')
@@ -4094,21 +4088,21 @@ def visprobs(resi,probs,pid='',seq=None):
     seccols=('b','r','g','0.5','c','y','k')
     reord=[1,2,3,0]# => order will be: HTNE
     for i,ri in enumerate(resi):
-        probi=probs[i]
-        probi=[probi[n] for n in reord]
-        ##bottoms=[0.0,probi[0],probi[0]+probi[1]]
+	probi=probs[i]
+	probi=[probi[n] for n in reord]
+	##bottoms=[0.0,probi[0],probi[0]+probi[1]]
         acum=cumsum([0.0]+list(probi))##*10.0
-        for n in range(4):
-          bari=bar(ri-0.5,probi[n],bottom=acum[n],width=1.0,fc=seccols[reord[n]],ec='none')
-        outfile.write('%s %3d '%(seq[ri-1],ri))
-        ##outfile.write('%5.3f %5.3f %5.3f\n'%tuple(probi))
-        outfile.write('%5.3f %5.3f %5.3f %5.3f\n'%tuple(probi))
+	for n in range(4):
+	  bari=bar(ri-0.5,probi[n],bottom=acum[n],width=1.0,fc=seccols[reord[n]],ec='none')
+	outfile.write('%s %3d '%(seq[ri-1],ri))
+	##outfile.write('%5.3f %5.3f %5.3f\n'%tuple(probi))
+	outfile.write('%5.3f %5.3f %5.3f %5.3f\n'%tuple(probi))
     outfile.close()
 
 def lineplot2dpcs2(resi,pc1s,pc2s,cols,ID):
    clf()
    title('Principal components '+ID)
-   scatter(pc1s,pc2s,c=cols,s=100,edgecolors='k')
+   scatter(pc1s,pc2s,c=cols,s=100,faceted=False)
    plot(pc1s,pc2s,'k')
    plot([-18,18],[0,0],'k--')
    plot([0,0],[-16,16],'k--')
